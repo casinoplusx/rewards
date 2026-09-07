@@ -51,23 +51,100 @@
             from { transform: translateX(0); opacity: 1; }
             to { transform: translateX(100%); opacity: 0; }
         }
+
+        /* Setup Overlay Styles */
+        .setup-icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+        .setup-subtitle {
+            color: #39ff14;
+            font-size: 11px;
+            margin: 5px 0 15px 0;
+            text-align: center;
+        }
+        .setup-error {
+            color: #ff4444;
+            font-size: 12px;
+            margin-top: 10px;
+            min-height: 20px;
+            text-align: center;
+        }
+        .setup-success {
+            color: #39ff14;
+            font-size: 12px;
+            margin-top: 10px;
+            min-height: 20px;
+            text-align: center;
+        }
+        .setup-input {
+            width: 100%;
+            padding: 12px 15px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            color: #fff;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+        }
+        .setup-input:focus {
+            outline: none;
+            border-color: #39ff14;
+            box-shadow: 0 0 20px rgba(57, 255, 20, 0.1);
+        }
+        .setup-input::placeholder {
+            color: rgba(255,255,255,0.3);
+        }
+        .setup-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #39ff14, #00cc00);
+            border: none;
+            border-radius: 8px;
+            color: #0a0f1a;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 15px;
+            letter-spacing: 2px;
+        }
+        .setup-btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 0 30px rgba(57, 255, 20, 0.3);
+        }
+        .setup-btn:active {
+            transform: scale(0.98);
+        }
+        .setup-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
     </style>
 </head>
 <body>
 
-<!-- ========== LOGIN OVERLAY ========== -->
-<div id="loginOverlay" class="login-overlay">
+<!-- ========== SETUP OVERLAY (First Time Only - No Login) ========== -->
+<div id="setupOverlay" class="login-overlay" style="display: none;">
     <div class="login-box">
-        <div class="login-icon">🔻</div>
-        <h2>C.I.A. ACCESS</h2>
-        <input type="password" id="accessKey" placeholder="ENTER MASTER KEY" autocomplete="off">
-        <button onclick="verifyAccess()">AUTHORIZE</button>
-        <div id="loginError" class="error-msg"></div>
+        <div class="setup-icon">🔑</div>
+        <h2>🔐 FIRST TIME SETUP</h2>
+        <p class="setup-subtitle">Create your master access key</p>
+        
+        <input type="password" id="setupNewKey" class="setup-input" placeholder="ENTER MASTER KEY" autocomplete="off">
+        <input type="password" id="setupConfirmKey" class="setup-input" placeholder="CONFIRM MASTER KEY" autocomplete="off" style="margin-top: 10px;">
+        
+        <button class="setup-btn" onclick="setupMasterKey()" id="setupBtn">🔒 CREATE ACCESS</button>
+        <div id="setupError" class="setup-error"></div>
     </div>
 </div>
 
 <!-- ========== MAIN DASHBOARD ========== -->
-<div id="dashboard" class="dashboard">
+<div id="dashboard" class="dashboard" style="display: none;">
     
     <!-- Header -->
     <div class="cia-header">
