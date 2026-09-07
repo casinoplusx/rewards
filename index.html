@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Zeus Drop | Divine Rewards</title>
+    <title>Lucky Dream | Fantasy Rewards</title>
     
     <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
@@ -20,83 +20,80 @@
 </head>
 <body>
 
-    <!-- ====== BACKGROUND LAYERS ====== -->
-    <!-- Main gradient overlay -->
+    <!-- ====== MAGICAL BACKGROUND LAYERS ====== -->
+    <!-- Night garden gradient -->
     <div class="bg-gradient"></div>
     
-    <!-- Divine glow effect -->
-    <div class="bg-glow"></div>
+    <!-- Magical glow orbs - vintage lamp effect -->
+    <div class="bg-glow-orb glow-orb-1"></div>
+    <div class="bg-glow-orb glow-orb-2"></div>
+    <div class="bg-glow-orb glow-orb-3"></div>
     
-    <!-- Zeus Background Image (VISIBLE) -->
-    <div class="bg-zeus"></div>
-    
-    <!-- Marble Texture Overlay -->
-    <div class="marble-texture"></div>
-    
-    <!-- Divine Particles (Golden Sparks) -->
-    <div class="divine-particles">
-        <div class="particle"></div>
-        <div class="particle"></div>
-        <div class="particle"></div>
-        <div class="particle"></div>
-        <div class="particle"></div>
-        <div class="particle"></div>
-        <div class="particle"></div>
-        <div class="particle"></div>
-        <div class="particle"></div>
-        <div class="particle"></div>
-        <div class="particle"></div>
-        <div class="particle"></div>
+    <!-- Rain sparkle particles -->
+    <div class="rain-sparkles">
+        <div class="sparkle"></div>
+        <div class="sparkle"></div>
+        <div class="sparkle"></div>
+        <div class="sparkle"></div>
+        <div class="sparkle"></div>
+        <div class="sparkle"></div>
+        <div class="sparkle"></div>
+        <div class="sparkle"></div>
+        <div class="sparkle"></div>
+        <div class="sparkle"></div>
+        <div class="sparkle"></div>
+        <div class="sparkle"></div>
+        <div class="sparkle"></div>
+        <div class="sparkle"></div>
+        <div class="sparkle"></div>
     </div>
-    
-    <!-- Lightning Flash Effect -->
-    <div class="lightning-flash"></div>
 
     <!-- Live Winners Ticker -->
     <div class="live-ticker">
         <div class="ticker-dot"></div>
         <div class="ticker-content">
-            <span class="ticker-text" id="winnerEntry">⚡ 0917***4256 completed task +₱500</span>
+            <span class="ticker-text" id="winnerEntry">✨ 0917***4256 completed task +₱500</span>
         </div>
-        <div class="ticker-badge">DIVINE</div>
+        <div class="ticker-badge">LUCKY</div>
     </div>
 
     <!-- Main Card -->
     <div class="main-card" id="mainCard">
-        <!-- Greek Corner Decorations -->
-        <span class="corner-deco tl">Ω</span>
-        <span class="corner-deco tr">Ω</span>
-        <span class="corner-deco bl">Ω</span>
-        <span class="corner-deco br">Ω</span>
+        <!-- Premium corner accents -->
+        <span class="corner-accent tl">✦</span>
+        <span class="corner-accent tr">✦</span>
+        <span class="corner-accent bl">✦</span>
+        <span class="corner-accent br">✦</span>
         
         <div class="logo-area">
             <div class="logo-icon">
-                <i class="fas fa-bolt"></i>
+                <i class="fas fa-star"></i>
+                <div class="logo-ring"></div>
             </div>
-            <h1 class="logo-text">ZEUS DROP</h1>
-            <div class="logo-sub">⚡ Mount Olympus ⚡</div>
+            <h1 class="logo-text">LUCKY DREAM</h1>
+            <div class="logo-sub">✦ Fantasy Garden ✦</div>
         </div>
 
-        <!-- Value Props -->
+        <!-- Premium Value Props -->
         <div class="value-props">
             <div class="prop-row">
-                <div class="prop-icon"><i class="fas fa-bolt"></i></div>
+                <div class="prop-icon"><i class="fas fa-sparkles"></i></div>
                 <div>
-                    <div class="prop-title">Divine Tasks</div>
-                    <div class="prop-desc">Complete simple tasks & earn blessings</div>
+                    <div class="prop-title">Magical Tasks</div>
+                    <div class="prop-desc">Complete simple tasks & earn rewards</div>
                 </div>
             </div>
             <div class="prop-row">
-                <div class="prop-icon"><i class="fas fa-coins"></i></div>
+                <div class="prop-icon"><i class="fas fa-gem"></i></div>
                 <div>
                     <div class="prop-title">Golden Rewards</div>
-                    <div class="prop-desc">₱500 per successful referral</div>
+                    <div class="prop-desc">₱500 per successful completion</div>
                 </div>
             </div>
             <div class="prop-row">
                 <div class="prop-icon"><i class="fas fa-wallet"></i></div>
                 <div>
-                    <div class="prop-title">GCash Payout</div>
+                    <div class="prop-title">Instant Payout</div>
                     <div class="prop-desc">Withdraw directly to your wallet</div>
                 </div>
             </div>
@@ -105,7 +102,7 @@
         <!-- Scarcity Tracker -->
         <div class="scarcity-box">
             <div class="scarcity-header">
-                <span class="scarcity-label">⚡ Sacred Slots</span>
+                <span class="scarcity-label">✦ Lucky Slots</span>
                 <div><span class="scarcity-numbers" id="remNum">88</span><span class="scarcity-total">/100</span></div>
             </div>
             <div class="progress-track">
@@ -120,13 +117,13 @@
                 <div class="swipe-icon" id="swipeIcon">
                     <img src="images/scatter_icon.jpg" class="scatter-icon" alt="swipe">
                 </div>
-                <div class="swipe-text">⚡ SWIPE TO VERIFY ⚡</div>
+                <div class="swipe-text">✦ SWIPE TO VERIFY ✦</div>
             </div>
         </div>
 
         <div class="card-footer">
             <i class="fas fa-shield-alt"></i>
-            <span>Protected by Olympus</span>
+            <span>Protected by Magic</span>
         </div>
     </div>
 
@@ -138,15 +135,15 @@
                 
                 <div id="modalBodyContent">
                     <div class="modal-icon">
-                        <i class="fas fa-bolt"></i>
+                        <i class="fas fa-star"></i>
                     </div>
-                    <h2 class="modal-title">DIVINE VERIFICATION</h2>
-                    <p class="modal-subtitle">This will be your <span class="gold-text">Player ID</span><br>Only the worthy shall receive Zeus's blessings</p>
+                    <h2 class="modal-title">✦ VERIFICATION ✦</h2>
+                    <p class="modal-subtitle">This will be your <span class="gold-text">Player ID</span><br>Enter the magical garden of rewards</p>
                     
                     <div class="bonus-box-premium">
                         <div class="bonus-glow"></div>
                         <div class="bonus-amount-premium">₱500</div>
-                        <div class="bonus-label-premium">⚡ ZEUS'S BLESSING ⚡</div>
+                        <div class="bonus-label-premium">✦ LUCKY REWARD ✦</div>
                         <div class="bonus-shine"></div>
                     </div>
                     
@@ -167,7 +164,7 @@
                     
                     <div class="warning-text-premium">
                         <i class="fas fa-shield-alt"></i>
-                        <span>Complete more tasks to receive divine payouts</span>
+                        <span>Complete more tasks to receive magical payouts</span>
                     </div>
                 </div>
             </div>
