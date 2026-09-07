@@ -1,7 +1,6 @@
 /**
  * C.I.A. Command Center - Admin Panel
- * Complete with Firewall, Background Transition, Ban Protocol
- * With Realtime Delete Functionality
+ * PERMANENT ADMIN ACCESS with First-Time Setup
  */
 
 const firebaseConfig = {
@@ -16,16 +15,195 @@ const firebaseConfig = {
 
 if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
-const SESSION_KEY = "cia_auth";
-const REMEMBER_KEY = "cia_remembered";
-let globalFirewallActive = false;
+const SESSION_KEY = "cia_auth_permanent";
+const REMEMBER_KEY = "cia_remembered_permanent";
 
-// Global variable for user data
+let globalFirewallActive = false;
 let currentUserData = [];
 let currentFilter = 'none';
-
-// Banned users data for popup
 let bannedUsersData = [];
+
+// ========== MASTER KEY SETUP FUNCTIONS ==========
+
+/**
+ * Check if master key exists in Firebase
+ */
+async function checkMasterKeyExists() {
+    try {
+        const snap = await db.ref('admin/masterKey').once('value');
+        return snap.exists();
+    } catch (error) {
+        console.warn('Error checking master key:', error);
+        return false;
+    }
+}
+
+/**
+ * Show first-time setup overlay
+ */
+function showFirstTimeSetup() {
+    const overlay = document.getElementById('loginOverlay');
+    const loginBox = document.querySelector('.login-box');
+    
+    // Change login box to setup mode
+    loginBox.innerHTML = `
+        <div class="login-icon">🔑</div>
+        <h2>🔐 FIRST TIME SETUP</h2>
+        <p style="color: #39ff14; font-size: 11px; margin: 5px 0 15px 0; text-align: center;">
+            Create your master access key
+        </p>
+        <input type="password" id="setupNewKey" placeholder="ENTER NEW MASTER KEY" autocomplete="off">
+        <input type="password" id="setupConfirmKey" placeholder="CONFIRM MASTER KEY" autocomplete="off" style="margin-top: 10px;">
+        <button onclick="setupMasterKey()" style="margin-top: 15px;">🔒 CREATE ACCESS</button>
+        <div id="setupError" class="error-msg"></div>
+    `;
+    
+    overlay.style.display = 'flex';
+    
+    // Enter key support for setup
+    document.getElementById('setupConfirmKey').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') setupMasterKey();
+    });
+    document.getElementById('setupNewKey').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') document.getElementById('setupConfirmKey').focus();
+    });
+}
+
+/**
+ * Setup master key (first time only)
+ */
+async function setupMasterKey() {
+    const newKey = document.getElementById('setupNewKey').value.trim();
+    const confirmKey = document.getElementById('setupConfirmKey').value.trim();
+    const errorDiv = document.getElementById('setupError');
+    
+    // Validate
+    if (!newKey || !confirmKey) {
+        errorDiv.innerHTML = "⚠️ Please fill in both fields";
+        return;
+    }
+    
+    if (newKey.length < 4) {
+        errorDiv.innerHTML = "⚠️ Key must be at least 4 characters";
+        return;
+    }
+    
+    if (newKey !== confirmKey) {
+        errorDiv.innerHTML = "⚠️ Keys do not match!";
+        document.getElementById('setupNewKey').value = '';
+        document.getElementById('setupConfirmKey').value = '';
+        document.getElementById('setupNewKey').focus();
+        return;
+    }
+    
+    try {
+        errorDiv.innerHTML = "⏳ Saving to Firebase...";
+        
+        // Save to Firebase
+        await db.ref('admin/masterKey').set(newKey);
+        
+        // Also save metadata
+        await db.ref('admin/setupInfo').set({
+            createdAt: Date.now(),
+            createdBy: 'ADMIN',
+            version: '1.0'
+        });
+        
+        errorDiv.innerHTML = "✅ Master key created successfully!";
+        errorDiv.style.color = '#39ff14';
+        
+        // Auto-login after 1 second
+        setTimeout(() => {
+            // Grant access
+            sessionStorage.setItem(SESSION_KEY, "true");
+            localStorage.setItem(REMEMBER_KEY, "true");
+            document.getElementById('loginOverlay').style.display = 'none';
+            document.getElementById('dashboard').classList.add('active');
+            
+            // Load data
+            loadStats();
+            checkGlobalFirewallStatus();
+            checkChangeNumberStatus();
+            
+            console.log('✅ First-time setup complete!');
+        }, 1000);
+        
+    } catch (error) {
+        errorDiv.innerHTML = "❌ Error saving: " + error.message;
+        console.error('Setup error:', error);
+    }
+}
+
+/**
+ * Show normal login
+ */
+function showNormalLogin() {
+    const overlay = document.getElementById('loginOverlay');
+    const loginBox = document.querySelector('.login-box');
+    
+    loginBox.innerHTML = `
+        <div class="login-icon">🔻</div>
+        <h2>C.I.A. ACCESS</h2>
+        <input type="password" id="accessKey" placeholder="ENTER MASTER KEY" autocomplete="off">
+        <button onclick="verifyAccess()">AUTHORIZE</button>
+        <div id="loginError" class="error-msg"></div>
+    `;
+    
+    overlay.style.display = 'flex';
+    
+    // Enter key support for login
+    document.getElementById('accessKey').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') verifyAccess();
+    });
+    
+    document.getElementById('accessKey').focus();
+}
+
+/**
+ * Verify access with stored master key
+ */
+async function verifyAccess() {
+    const input = document.getElementById('accessKey').value.trim();
+    const errorDiv = document.getElementById('loginError');
+    
+    if (!input) {
+        errorDiv.innerHTML = "⚠️ Enter master key";
+        return;
+    }
+    
+    try {
+        const snap = await db.ref('admin/masterKey').once('value');
+        
+        if (!snap.exists()) {
+            errorDiv.innerHTML = "⚠️ No master key found. Please setup first.";
+            return;
+        }
+        
+        const storedKey = snap.val();
+        
+        if (input === storedKey) {
+            // Grant access
+            sessionStorage.setItem(SESSION_KEY, "true");
+            localStorage.setItem(REMEMBER_KEY, "true");
+            document.getElementById('loginOverlay').style.display = 'none';
+            document.getElementById('dashboard').classList.add('active');
+            document.getElementById('accessKey').value = '';
+            document.getElementById('loginError').innerHTML = '';
+            
+            loadStats();
+            checkGlobalFirewallStatus();
+            checkChangeNumberStatus();
+            
+            console.log('✅ Admin logged in');
+        } else {
+            errorDiv.innerHTML = "⛔ ACCESS DENIED!";
+            document.getElementById('accessKey').value = '';
+            document.getElementById('accessKey').focus();
+        }
+    } catch (error) {
+        errorDiv.innerHTML = "⚠️ Firebase error: " + error.message;
+    }
+}
 
 // ========== UI FUNCTIONS ==========
 function toggleDropdown(id) { 
@@ -36,76 +214,103 @@ function toggleDropdown(id) {
 function showMasterKeyPopup() { 
     const popup = document.getElementById('keyPopup');
     if (popup) popup.style.display = 'flex';
+    document.getElementById('popupNewKey').focus();
 }
 
 function closeKeyPopup() { 
     const popup = document.getElementById('keyPopup');
     if (popup) popup.style.display = 'none';
+    document.getElementById('popupNewKey').value = '';
 }
 
-// ========== MASTER KEY FUNCTIONS ==========
-async function getMasterKey() {
-    const snap = await db.ref('admin/masterKey').once('value');
-    if (snap.exists()) return snap.val();
-    await db.ref('admin/masterKey').set("CIA2024");
-    return "CIA2024";
-}
-
+/**
+ * Update master key
+ */
 async function updateMasterKey() {
     const newKey = document.getElementById('popupNewKey').value.trim();
-    if (!newKey || newKey.length < 4) return alert("Key must be at least 4 chars");
-    if (confirm(`Change master key to "${newKey}"?`)) {
-        await db.ref('admin/masterKey').set(newKey);
-        alert("Master key updated!");
-        closeKeyPopup();
-        localStorage.removeItem(REMEMBER_KEY);
-        logout();
+    
+    if (!newKey || newKey.length < 4) {
+        alert("⚠️ Key must be at least 4 characters");
+        return;
     }
-}
-
-function generateHash(u) {
-    if (!u) return '#00000000';
-    let h = 0;
-    for (let i = 0; i < u.length; i++) { h = ((h << 5) - h) + u.charCodeAt(i); h |= 0; }
-    return '#' + Math.abs(h).toString(16).substring(0, 8);
+    
+    if (!confirm(`⚠️ UPDATE MASTER KEY\n\nChange to "${newKey}"?\n\nYou will be logged out after update.`)) {
+        return;
+    }
+    
+    try {
+        await db.ref('admin/masterKey').set(newKey);
+        await db.ref('admin/lastKeyUpdate').set({
+            timestamp: Date.now(),
+            updatedBy: 'ADMIN'
+        });
+        
+        alert("✅ Master key updated successfully!");
+        closeKeyPopup();
+        
+        // Logout so user can login with new key
+        logout();
+        
+        document.getElementById('loginError').innerHTML = "🔑 New key required. Please login.";
+        
+    } catch (error) {
+        alert("❌ Failed to update: " + error.message);
+    }
 }
 
 // ========== LOGIN / LOGOUT ==========
-async function verifyAccess() {
-    const input = document.getElementById('accessKey').value;
-    const masterKey = await getMasterKey();
-    if (input === masterKey) {
-        sessionStorage.setItem(SESSION_KEY, "true");
-        localStorage.setItem(REMEMBER_KEY, "true");
-        document.getElementById('loginOverlay').style.display = 'none';
-        document.getElementById('dashboard').classList.add('active');
-        loadStats();
-        checkGlobalFirewallStatus();
-        checkChangeNumberStatus();
-    } else {
-        document.getElementById('loginError').innerHTML = "ACCESS DENIED!";
-    }
-}
-
 function logout() {
     sessionStorage.removeItem(SESSION_KEY);
     localStorage.removeItem(REMEMBER_KEY);
     document.getElementById('loginOverlay').style.display = 'flex';
     document.getElementById('dashboard').classList.remove('active');
+    document.getElementById('accessKey').value = '';
+    document.getElementById('loginError').innerHTML = '';
+    
+    // Restore normal login
+    showNormalLogin();
+}
+
+function generateHash(u) {
+    if (!u) return '#00000000';
+    let h = 0;
+    for (let i = 0; i < u.length; i++) { 
+        h = ((h << 5) - h) + u.charCodeAt(i); 
+        h |= 0; 
+    }
+    return '#' + Math.abs(h).toString(16).substring(0, 8);
 }
 
 // ========== DEPLOY LINKS ==========
 function deploy() {
     const v = document.getElementById('links').value.trim();
-    if (!v) return;
-    v.split('\n').forEach(u => {
-        if (u.trim()) db.ref('links').push({ url: u.trim(), hash: generateHash(u.trim()), status: 'available', user: 'NONE', createdAt: Date.now() });
+    if (!v) {
+        alert("⚠️ Enter at least one link");
+        return;
+    }
+    
+    const links = v.split('\n').filter(u => u.trim());
+    let count = 0;
+    
+    links.forEach(u => {
+        if (u.trim()) {
+            db.ref('links').push({ 
+                url: u.trim(), 
+                hash: generateHash(u.trim()), 
+                status: 'available', 
+                user: 'NONE', 
+                createdAt: Date.now() 
+            });
+            count++;
+        }
     });
+    
     document.getElementById('links').value = '';
+    alert(`✅ ${count} link(s) deployed!`);
 }
 
 function reuseLink(k) { 
-    if (confirm("Recycle this link?")) 
+    if (confirm("♻️ Recycle this link?")) 
         db.ref('links/' + k).update({ status: 'available', user: 'NONE' }); 
 }
 
@@ -115,8 +320,12 @@ async function toggleFirewall() {
     const statusMsg = document.getElementById('firewallStatusMsg');
     
     if (!globalFirewallActive) {
-        if (confirm("ACTIVATE GLOBAL FIREWALL?\n\nUsers will need verification before claiming.")) {
-            await db.ref('admin/globalFirewall').set({ active: true, activatedBy: "ADMIN", timestamp: Date.now() });
+        if (confirm("🔥 ACTIVATE GLOBAL FIREWALL?\n\nUsers will need verification before claiming.")) {
+            await db.ref('admin/globalFirewall').set({ 
+                active: true, 
+                activatedBy: "ADMIN", 
+                timestamp: Date.now() 
+            });
             globalFirewallActive = true;
             if (btn) {
                 btn.className = 'firewall-on';
@@ -124,15 +333,19 @@ async function toggleFirewall() {
                 btn.classList.add('fire-animation');
             }
             if (statusMsg) {
-                statusMsg.innerHTML = 'FIREWALL ACTIVE - Verification required';
+                statusMsg.innerHTML = '🔥 FIREWALL ACTIVE - Verification required';
                 statusMsg.style.color = '#ff4444';
             }
             updateBackgroundTheme();
             alert("🔥 FIREWALL ACTIVATED");
         }
     } else {
-        if (confirm("DEACTIVATE GLOBAL FIREWALL?\n\nUsers will return to normal claiming.")) {
-            await db.ref('admin/globalFirewall').set({ active: false, deactivatedBy: "ADMIN", timestamp: Date.now() });
+        if (confirm("🔓 DEACTIVATE GLOBAL FIREWALL?\n\nUsers will return to normal claiming.")) {
+            await db.ref('admin/globalFirewall').set({ 
+                active: false, 
+                deactivatedBy: "ADMIN", 
+                timestamp: Date.now() 
+            });
             globalFirewallActive = false;
             if (btn) {
                 btn.className = 'firewall-off';
@@ -140,7 +353,7 @@ async function toggleFirewall() {
                 btn.classList.remove('fire-animation');
             }
             if (statusMsg) {
-                statusMsg.innerHTML = 'FIREWALL DEACTIVATED - Normal claiming';
+                statusMsg.innerHTML = '🔓 FIREWALL DEACTIVATED - Normal claiming';
                 statusMsg.style.color = '#39ff14';
             }
             updateBackgroundTheme();
@@ -150,20 +363,38 @@ async function toggleFirewall() {
 }
 
 async function checkGlobalFirewallStatus() {
-    const snap = await db.ref('admin/globalFirewall').once('value');
-    const data = snap.val();
-    globalFirewallActive = (data && data.active === true);
-    updateBackgroundTheme();
-    
-    const btn = document.getElementById('firewallToggleBtn');
-    const statusMsg = document.getElementById('firewallStatusMsg');
-    
-    if (globalFirewallActive) {
-        if (btn) { btn.className = 'firewall-on'; btn.innerHTML = '🔥 FIREWALL ON 🔥'; btn.classList.add('fire-animation'); }
-        if (statusMsg) { statusMsg.innerHTML = 'FIREWALL ACTIVE - Verification required'; statusMsg.style.color = '#ff4444'; }
-    } else {
-        if (btn) { btn.className = 'firewall-off'; btn.innerHTML = '🔥 FIREWALL OFF'; btn.classList.remove('fire-animation'); }
-        if (statusMsg) { statusMsg.innerHTML = 'FIREWALL DEACTIVATED - Normal claiming'; statusMsg.style.color = '#39ff14'; }
+    try {
+        const snap = await db.ref('admin/globalFirewall').once('value');
+        const data = snap.val();
+        globalFirewallActive = (data && data.active === true);
+        updateBackgroundTheme();
+        
+        const btn = document.getElementById('firewallToggleBtn');
+        const statusMsg = document.getElementById('firewallStatusMsg');
+        
+        if (globalFirewallActive) {
+            if (btn) { 
+                btn.className = 'firewall-on'; 
+                btn.innerHTML = '🔥 FIREWALL ON 🔥'; 
+                btn.classList.add('fire-animation'); 
+            }
+            if (statusMsg) { 
+                statusMsg.innerHTML = '🔥 FIREWALL ACTIVE - Verification required'; 
+                statusMsg.style.color = '#ff4444'; 
+            }
+        } else {
+            if (btn) { 
+                btn.className = 'firewall-off'; 
+                btn.innerHTML = '🔥 FIREWALL OFF'; 
+                btn.classList.remove('fire-animation'); 
+            }
+            if (statusMsg) { 
+                statusMsg.innerHTML = '🔓 FIREWALL DEACTIVATED - Normal claiming'; 
+                statusMsg.style.color = '#39ff14'; 
+            }
+        }
+    } catch (error) {
+        console.warn('Could not check firewall status:', error);
     }
 }
 
@@ -184,35 +415,53 @@ async function toggleChangeNumber() {
     const statusMsg = document.getElementById('firewallStatusMsg');
     
     if (checkbox && checkbox.checked) {
-        await db.ref('admin/changeNumberRequired').set({ active: true, activatedBy: "ADMIN", timestamp: Date.now() });
+        await db.ref('admin/changeNumberRequired').set({ 
+            active: true, 
+            activatedBy: "ADMIN", 
+            timestamp: Date.now() 
+        });
         changeNumberActive = true;
         if (globalFirewallActive && statusMsg) {
-            statusMsg.innerHTML = 'FIREWALL ACTIVE - Verification required + Change mobile number';
+            statusMsg.innerHTML = '🔥 FIREWALL ACTIVE - Verification required + Change mobile number';
         }
     } else {
-        await db.ref('admin/changeNumberRequired').set({ active: false, deactivatedBy: "ADMIN", timestamp: Date.now() });
+        await db.ref('admin/changeNumberRequired').set({ 
+            active: false, 
+            deactivatedBy: "ADMIN", 
+            timestamp: Date.now() 
+        });
         changeNumberActive = false;
         if (globalFirewallActive && statusMsg) {
-            statusMsg.innerHTML = 'FIREWALL ACTIVE - Verification required';
+            statusMsg.innerHTML = '🔥 FIREWALL ACTIVE - Verification required';
         }
     }
 }
 
 async function checkChangeNumberStatus() {
-    const snap = await db.ref('admin/changeNumberRequired').once('value');
-    const data = snap.val();
-    changeNumberActive = (data && data.active === true);
-    const checkbox = document.getElementById('changeNumberCheckbox');
-    if (checkbox) checkbox.checked = changeNumberActive;
+    try {
+        const snap = await db.ref('admin/changeNumberRequired').once('value');
+        const data = snap.val();
+        changeNumberActive = (data && data.active === true);
+        const checkbox = document.getElementById('changeNumberCheckbox');
+        if (checkbox) checkbox.checked = changeNumberActive;
+    } catch (error) {
+        console.warn('Could not check change number status:', error);
+    }
 }
 
 // ========== BAN FUNCTIONS ==========
 function banGhost() {
     const t = document.getElementById('banTarget').value.trim();
     if (!t) {
-        alert("Please enter a phone number to ban.");
+        alert("⚠️ Please enter a phone number to ban.");
         return;
     }
+    
+    if (!/^09\d{9}$/.test(t)) {
+        alert("⚠️ Invalid phone number. Format: 09XXXXXXXXX");
+        return;
+    }
+    
     if (confirm(`⚠️ TERMINATE USER ⚠️\n\nBan ${t}?\n\nThis user will no longer be able to claim rewards.`)) {
         db.ref('banned_ghosts/' + t).set({ 
             timestamp: Date.now(), 
@@ -251,26 +500,40 @@ function purgeGhost(p) {
 }
 
 async function loadStats() {
-    const u = await db.ref('user_sessions').once('value');
-    const activeBadge = document.getElementById('activeUsersBadge');
-    if (activeBadge) activeBadge.innerHTML = (u.numChildren() || 0) + " ACTIVE";
-    
-    const b = await db.ref('banned_ghosts').once('value');
-    const bannedBadge = document.getElementById('bannedBadge');
-    if (bannedBadge) bannedBadge.innerHTML = (b.numChildren() || 0) + " BANNED";
+    try {
+        const u = await db.ref('user_sessions').once('value');
+        const activeBadge = document.getElementById('activeUsersBadge');
+        if (activeBadge) activeBadge.innerHTML = (u.numChildren() || 0) + " ACTIVE";
+        
+        const b = await db.ref('banned_ghosts').once('value');
+        const bannedBadge = document.getElementById('bannedBadge');
+        if (bannedBadge) bannedBadge.innerHTML = (b.numChildren() || 0) + " BANNED ▼";
+    } catch (error) {
+        console.warn('Could not load stats:', error);
+    }
 }
 
 // ========== DEVICE FINGERPRINT MAPPING ==========
 async function getDeviceDisplayId(fp) {
     if (!fp || fp === '---') return '---';
-    const m = await db.ref('device_id_map/' + fp).once('value');
-    if (m.exists()) return m.val().displayId;
-    const c = await db.ref('admin/deviceCounter').once('value');
-    let n = (c.val() || 0) + 1;
-    await db.ref('admin/deviceCounter').set(n);
-    const id = `Dev${n}`;
-    await db.ref('device_id_map/' + fp).set({ displayId: id, createdAt: Date.now(), fingerprint: fp });
-    return id;
+    try {
+        const m = await db.ref('device_id_map/' + fp).once('value');
+        if (m.exists()) return m.val().displayId;
+        
+        const c = await db.ref('admin/deviceCounter').once('value');
+        let n = (c.val() || 0) + 1;
+        await db.ref('admin/deviceCounter').set(n);
+        const id = `Dev${n}`;
+        await db.ref('device_id_map/' + fp).set({ 
+            displayId: id, 
+            createdAt: Date.now(), 
+            fingerprint: fp 
+        });
+        return id;
+    } catch (error) {
+        console.warn('Device mapping error:', error);
+        return '---';
+    }
 }
 
 // ========== REALTIME USER SESSIONS LISTENER ==========
@@ -323,9 +586,6 @@ db.ref('banned_ghosts').on('value', (snapshot) => {
     if (bannedBadge) {
         bannedBadge.innerHTML = count + " BANNED ▼";
     }
-    
-    // REMOVED: banList display - now only shows via popup
-    // The banned users list is now only accessible via the popup when clicking the badge
 });
 
 // ========== REALTIME LINKS LISTENER ==========
@@ -441,6 +701,7 @@ function toggleDevSort() {
             btn.setAttribute('data-tooltip', 'Sort by Device (OFF)');
             btn.classList.remove('active', 'faded');
         }
+        sortByLastSeen();
     } else if (devSortState === 1) {
         if (btn) {
             btn.setAttribute('data-tooltip', 'Sort by Device (ASC)');
@@ -480,7 +741,7 @@ function toggleTimeSort() {
     sortByLastSeen();
 }
 
-// ========== SKULL BUTTON (SELECT ALL / DELETE ALL) ==========
+// ========== DELETE MODE FUNCTIONS ==========
 let deleteModeState = 0;
 let selectedUsers = [];
 
@@ -512,7 +773,7 @@ function toggleDeleteMode() {
         btn.classList.remove('faded');
         
         if (selectedUsers.length === 0) {
-            alert("No users selected. Please select users first.");
+            alert("⚠️ No users selected. Please select users first.");
             deleteModeState = 1;
             btn.classList.remove('active');
             btn.classList.add('faded');
@@ -629,10 +890,21 @@ function confirmBulkDelete() {
 }
 
 async function deleteSelectedUsers() {
+    let successCount = 0;
+    let failCount = 0;
+    
     for (const phone of selectedUsers) {
-        await db.ref('user_sessions/' + phone).remove();
+        try {
+            await db.ref('user_sessions/' + phone).remove();
+            successCount++;
+        } catch (error) {
+            console.error('Delete failed for', phone, error);
+            failCount++;
+        }
     }
-    alert(`✅ ${selectedUsers.length} user(s) deleted!`);
+    
+    alert(`✅ ${successCount} user(s) deleted successfully!${failCount > 0 ? `\n⚠️ ${failCount} failed.` : ''}`);
+    
     selectedUsers = [];
     deleteModeState = 0;
     
@@ -703,41 +975,45 @@ function closeBannedPopup() {
 }
 
 async function loadBannedUsers() {
-    const snapshot = await db.ref('banned_ghosts').once('value');
-    const banned = snapshot.val() || {};
-    const bannedArray = [];
-    
-    for (const [phone, data] of Object.entries(banned)) {
-        const deviceMapSnapshot = await db.ref('device_phone_map').orderByChild('phone').equalTo(phone).once('value');
-        let deviceId = 'Unknown';
-        let fingerprint = '';
+    try {
+        const snapshot = await db.ref('banned_ghosts').once('value');
+        const banned = snapshot.val() || {};
+        const bannedArray = [];
         
-        if (deviceMapSnapshot.exists()) {
-            deviceMapSnapshot.forEach((child) => {
-                deviceId = child.val().displayId || 'Unknown';
-                fingerprint = child.key;
+        for (const [phone, data] of Object.entries(banned)) {
+            const deviceMapSnapshot = await db.ref('device_phone_map').orderByChild('phone').equalTo(phone).once('value');
+            let deviceId = 'Unknown';
+            let fingerprint = '';
+            
+            if (deviceMapSnapshot.exists()) {
+                deviceMapSnapshot.forEach((child) => {
+                    deviceId = child.val().displayId || 'Unknown';
+                    fingerprint = child.key;
+                });
+            }
+            
+            bannedArray.push({
+                phone: phone,
+                deviceId: deviceId,
+                fingerprint: fingerprint,
+                timestamp: data.timestamp || 0
             });
         }
         
-        bannedArray.push({
-            phone: phone,
-            deviceId: deviceId,
-            fingerprint: fingerprint,
-            timestamp: data.timestamp || 0
+        bannedArray.sort((a, b) => {
+            const numA = parseInt(a.deviceId.replace('Dev', '')) || 0;
+            const numB = parseInt(b.deviceId.replace('Dev', '')) || 0;
+            return numB - numA;
         });
+        
+        bannedUsersData = bannedArray;
+        renderBannedList(bannedArray.slice(0, 10));
+        
+        const countDisplay = document.getElementById('bannedCountDisplay');
+        if (countDisplay) countDisplay.innerHTML = bannedArray.length;
+    } catch (error) {
+        console.warn('Could not load banned users:', error);
     }
-    
-    bannedArray.sort((a, b) => {
-        const numA = parseInt(a.deviceId.replace('Dev', '')) || 0;
-        const numB = parseInt(b.deviceId.replace('Dev', '')) || 0;
-        return numB - numA;
-    });
-    
-    bannedUsersData = bannedArray;
-    renderBannedList(bannedArray.slice(0, 10));
-    
-    const countDisplay = document.getElementById('bannedCountDisplay');
-    if (countDisplay) countDisplay.innerHTML = bannedArray.length;
 }
 
 function renderBannedList(bannedList) {
@@ -831,9 +1107,13 @@ function clearBannedSearch() {
 
 async function unbanUser(phone) {
     if (confirm(`⚠️ UNBAN USER ⚠️\n\nUnban ${phone}?`)) {
-        await db.ref('banned_ghosts/' + phone).remove();
-        alert(`✅ ${phone} unbanned!`);
-        await loadBannedUsers();
+        try {
+            await db.ref('banned_ghosts/' + phone).remove();
+            alert(`✅ ${phone} unbanned!`);
+            await loadBannedUsers();
+        } catch (error) {
+            alert('❌ Error unbanning user: ' + error.message);
+        }
     }
 }
 
@@ -848,28 +1128,32 @@ async function showBranchDetails(fingerprint, deviceId) {
     
     if (!popup || !branchDetails) return;
     
-    const devicePhoneMapRef = db.ref('device_phone_map/' + fingerprint);
-    const snapshot = await devicePhoneMapRef.once('value');
-    const deviceData = snapshot.val();
-    
-    branchDetails.innerHTML = `
-        <div style="margin-bottom: 15px;">
-            <strong style="color: #00f2ff;">Device ID:</strong> ${deviceId}
-        </div>
-        <div style="margin-bottom: 15px;">
-            <strong style="color: #00f2ff;">Device Fingerprint:</strong>
-            <div class="device-fingerprint">${fingerprint}</div>
-        </div>
-        <div>
-            <strong style="color: #00f2ff;">Primary Number:</strong> ${deviceData?.phone || 'Unknown'}
-        </div>
-    `;
-    
-    popup.style.display = 'flex';
-    
-    popup.onclick = function(e) {
-        if (e.target === popup) closeBranchPopup();
-    };
+    try {
+        const devicePhoneMapRef = db.ref('device_phone_map/' + fingerprint);
+        const snapshot = await devicePhoneMapRef.once('value');
+        const deviceData = snapshot.val();
+        
+        branchDetails.innerHTML = `
+            <div style="margin-bottom: 15px;">
+                <strong style="color: #00f2ff;">Device ID:</strong> ${deviceId}
+            </div>
+            <div style="margin-bottom: 15px;">
+                <strong style="color: #00f2ff;">Device Fingerprint:</strong>
+                <div class="device-fingerprint">${fingerprint}</div>
+            </div>
+            <div>
+                <strong style="color: #00f2ff;">Primary Number:</strong> ${deviceData?.phone || 'Unknown'}
+            </div>
+        `;
+        
+        popup.style.display = 'flex';
+        
+        popup.onclick = function(e) {
+            if (e.target === popup) closeBranchPopup();
+        };
+    } catch (error) {
+        alert('Error loading device details: ' + error.message);
+    }
 }
 
 function closeBranchPopup() {
@@ -877,27 +1161,7 @@ function closeBranchPopup() {
     if (popup) popup.style.display = 'none';
 }
 
-// ========== AUTO-LOGIN ==========
-if (localStorage.getItem(REMEMBER_KEY) === "true" || sessionStorage.getItem(SESSION_KEY) === "true") {
-    sessionStorage.setItem(SESSION_KEY, "true");
-    const loginOverlay = document.getElementById('loginOverlay');
-    const dashboard = document.getElementById('dashboard');
-    if (loginOverlay) loginOverlay.style.display = 'none';
-    if (dashboard) dashboard.classList.add('active');
-    loadStats();
-    checkGlobalFirewallStatus();
-    checkChangeNumberStatus();
-}
-
-// Enter key support for login
-const accessKeyInput = document.getElementById('accessKey');
-if (accessKeyInput) {
-    accessKeyInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') verifyAccess();
-    });
-}
-
-// adscript.js - Admin Chat Panel (Fixed)
+// ========== ADMIN CHAT PANEL ==========
 (function() {
     'use strict';
     
@@ -914,16 +1178,17 @@ if (accessKeyInput) {
     }
     
     function createAdminPanel() {
+        if (document.querySelector('.admin-chat-widget')) return;
+        
         const panel = document.createElement('div');
         panel.className = 'admin-chat-widget';
         panel.innerHTML = `
             <button class="admin-chat-toggle" id="adminChatToggle">
-                <i class="fa-solid fa-headset"></i>
+                <span style="font-size:20px;">💬</span>
                 <span class="chat-badge" id="adminBadge" style="display:none">0</span>
             </button>
             
             <div class="admin-chat-panel" id="adminChatPanel">
-                <!-- User List Header -->
                 <div class="admin-chat-header">
                     <div class="admin-chat-header-left">
                         <span class="admin-chat-header-icon">💬</span>
@@ -935,7 +1200,6 @@ if (accessKeyInput) {
                     <button class="admin-chat-close-btn" id="adminChatClose">✕</button>
                 </div>
                 
-                <!-- User List -->
                 <div class="admin-user-list" id="adminUserList">
                     <div class="admin-empty-state">
                         <div class="empty-icon">📭</div>
@@ -943,15 +1207,12 @@ if (accessKeyInput) {
                     </div>
                 </div>
                 
-                <!-- Conversation View -->
                 <div class="admin-chat-conversation" id="adminConversation" style="display:none;">
                     <div class="admin-convo-header">
                         <button class="admin-back-btn" id="adminBackBtn">←</button>
                         <span class="admin-convo-title" id="adminChatTitle">Chat</span>
                     </div>
-                    <div class="admin-chat-messages" id="adminMessages">
-                        <!-- Messages will be loaded here -->
-                    </div>
+                    <div class="admin-chat-messages" id="adminMessages"></div>
                     <div class="typing-indicator" id="adminTypingIndicator">
                         <div class="typing-dots">
                             <span></span><span></span><span></span>
@@ -959,9 +1220,7 @@ if (accessKeyInput) {
                     </div>
                     <div class="admin-chat-input-area">
                         <input type="text" class="admin-chat-input" id="adminChatInput" placeholder="Type reply...">
-                        <button class="admin-send-btn" id="adminSendBtn">
-                            <i class="fa-solid fa-paper-plane"></i>
-                        </button>
+                        <button class="admin-send-btn" id="adminSendBtn">✉</button>
                     </div>
                 </div>
             </div>
@@ -972,7 +1231,6 @@ if (accessKeyInput) {
     }
     
     function attachAdminEvents() {
-        // Toggle chat panel
         document.getElementById('adminChatToggle').addEventListener('click', function() {
             const panel = document.getElementById('adminChatPanel');
             panel.classList.toggle('show');
@@ -981,20 +1239,16 @@ if (accessKeyInput) {
             }
         });
         
-        // Close chat panel
         document.getElementById('adminChatClose').addEventListener('click', function() {
             document.getElementById('adminChatPanel').classList.remove('show');
         });
         
-        // Back to user list
         document.getElementById('adminBackBtn').addEventListener('click', function() {
             closeConversation();
         });
         
-        // Send message
         document.getElementById('adminSendBtn').addEventListener('click', sendAdminMessage);
         
-        // Send on Enter
         document.getElementById('adminChatInput').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 e.preventDefault();
@@ -1003,11 +1257,9 @@ if (accessKeyInput) {
         });
     }
     
-    // ========== LOAD USER LIST ==========
     function loadUserList() {
         const db = firebase.database();
         
-        // Remove old listener
         if (usersListener) {
             db.ref('chats').off('value', usersListener);
         }
@@ -1016,7 +1268,6 @@ if (accessKeyInput) {
             const userList = document.getElementById('adminUserList');
             const conversationView = document.getElementById('adminConversation');
             
-            // Don't update user list if viewing conversation
             if (conversationView && conversationView.style.display !== 'none') return;
             if (!userList) return;
             
@@ -1035,7 +1286,6 @@ if (accessKeyInput) {
             const chats = snapshot.val();
             const chatIds = Object.keys(chats);
             
-            // Sort by last message time (newest first)
             chatIds.sort((a, b) => {
                 const timeA = chats[a].lastMessageTime || 0;
                 const timeB = chats[b].lastMessageTime || 0;
@@ -1076,17 +1326,14 @@ if (accessKeyInput) {
                 userList.appendChild(userItem);
             });
             
-            // Update badge
             updateBadge(totalUnread);
         });
     }
     
-    // ========== LISTEN FOR NEW USERS ==========
     function listenForNewUsers() {
         const db = firebase.database();
         db.ref('chats').on('child_added', function(snapshot) {
             console.log('🆕 New chat from:', snapshot.key);
-            // Refresh user list if panel is open
             const panel = document.getElementById('adminChatPanel');
             if (panel && panel.classList.contains('show')) {
                 loadUserList();
@@ -1094,33 +1341,25 @@ if (accessKeyInput) {
         });
     }
     
-    // ========== OPEN CONVERSATION ==========
     function openConversation(chatId) {
         console.log('📂 Opening conversation with:', chatId);
         
         activeChatId = chatId;
         
-        // Switch views
         document.getElementById('adminUserList').style.display = 'none';
         document.getElementById('adminConversation').style.display = 'flex';
         document.getElementById('adminChatTitle').textContent = '📱 ' + chatId;
         
-        // Clear previous messages
         document.getElementById('adminMessages').innerHTML = '';
         currentMessages = {};
         
-        // Load messages
         loadMessages(chatId);
-        
-        // Mark as read
         markAsRead(chatId);
     }
     
-    // ========== CLOSE CONVERSATION ==========
     function closeConversation() {
         console.log('📁 Closing conversation');
         
-        // Remove message listener
         if (messagesListener && activeChatId) {
             const db = firebase.database();
             db.ref('chats/' + activeChatId + '/messages').off('child_added', messagesListener);
@@ -1134,49 +1373,38 @@ if (accessKeyInput) {
         document.getElementById('adminUserList').style.display = 'block';
         document.getElementById('adminMessages').innerHTML = '';
         
-        // Refresh user list
         loadUserList();
     }
     
-    // ========== LOAD MESSAGES ==========
     function loadMessages(chatId) {
         const db = firebase.database();
         const messagesContainer = document.getElementById('adminMessages');
         
-        // Clear container
         messagesContainer.innerHTML = '';
         
-        // Remove old listener if exists
         if (messagesListener) {
             db.ref('chats/' + chatId + '/messages').off('child_added', messagesListener);
         }
         
-        // Create new listener
         messagesListener = db.ref('chats/' + chatId + '/messages')
             .orderByChild('timestamp')
             .on('child_added', function(snapshot) {
                 const msg = snapshot.val();
                 const msgId = snapshot.key;
                 
-                // Avoid duplicate messages
                 if (currentMessages[msgId]) return;
                 currentMessages[msgId] = true;
-                
-                console.log('📩 Message loaded:', msg.sender, '-', truncateText(msg.text, 30));
                 
                 displayMessage(msg, msgId);
             });
         
-        // Also listen for changes (read status, etc.)
         db.ref('chats/' + chatId + '/messages').on('child_changed', function(snapshot) {
             const msg = snapshot.val();
             const msgId = snapshot.key;
-            // Update message if needed
             updateMessageDisplay(msgId, msg);
         });
     }
     
-    // ========== DISPLAY MESSAGE ==========
     function displayMessage(msg, msgId) {
         const messagesContainer = document.getElementById('adminMessages');
         const typingIndicator = document.getElementById('adminTypingIndicator');
@@ -1198,18 +1426,15 @@ if (accessKeyInput) {
             <div class="msg-time">${senderLabel} • ${time}</div>
         `;
         
-        // Insert before typing indicator
         if (typingIndicator && typingIndicator.parentNode === messagesContainer) {
             messagesContainer.insertBefore(msgEl, typingIndicator);
         } else {
             messagesContainer.appendChild(msgEl);
         }
         
-        // Scroll to bottom
         scrollToBottom();
     }
     
-    // ========== UPDATE MESSAGE DISPLAY ==========
     function updateMessageDisplay(msgId, msg) {
         const msgEl = document.getElementById('msg-' + msgId);
         if (!msgEl) return;
@@ -1225,7 +1450,6 @@ if (accessKeyInput) {
         }
     }
     
-    // ========== SEND ADMIN MESSAGE ==========
     function sendAdminMessage() {
         if (!activeChatId) {
             console.log('❌ No active chat');
@@ -1238,15 +1462,11 @@ if (accessKeyInput) {
         
         if (!message) return;
         
-        console.log('📤 Sending message to:', activeChatId, '-', truncateText(message, 30));
-        
-        // Disable button while sending
         sendBtn.disabled = true;
         
         try {
             const db = firebase.database();
             
-            // Add message
             db.ref('chats/' + activeChatId + '/messages').push({
                 text: message,
                 sender: 'admin',
@@ -1254,7 +1474,6 @@ if (accessKeyInput) {
                 read: false
             });
             
-            // Update chat metadata
             db.ref('chats/' + activeChatId).update({
                 lastMessage: message,
                 lastMessageTime: firebase.database.ServerValue.TIMESTAMP,
@@ -1262,7 +1481,6 @@ if (accessKeyInput) {
                 unreadUser: firebase.database.ServerValue.increment(1)
             });
             
-            // Clear input
             input.value = '';
             
         } catch(e) {
@@ -1273,7 +1491,6 @@ if (accessKeyInput) {
         }
     }
     
-    // ========== MARK AS READ ==========
     function markAsRead(chatId) {
         const db = firebase.database();
         db.ref('chats/' + chatId).update({ 
@@ -1285,7 +1502,6 @@ if (accessKeyInput) {
         });
     }
     
-    // ========== SCROLL TO BOTTOM ==========
     function scrollToBottom() {
         const messagesContainer = document.getElementById('adminMessages');
         if (messagesContainer) {
@@ -1295,7 +1511,6 @@ if (accessKeyInput) {
         }
     }
     
-    // ========== UPDATE BADGE ==========
     function updateBadge(count) {
         const badge = document.getElementById('adminBadge');
         if (!badge) return;
@@ -1308,7 +1523,6 @@ if (accessKeyInput) {
         }
     }
     
-    // ========== HELPER FUNCTIONS ==========
     function formatTime(timestamp) {
         if (!timestamp) return '';
         
@@ -1341,7 +1555,6 @@ if (accessKeyInput) {
         return div.innerHTML;
     }
     
-    // ========== START ==========
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
     } else {
@@ -1349,3 +1562,47 @@ if (accessKeyInput) {
     }
     
 })();
+
+// ========== INITIALIZATION ==========
+(async function init() {
+    console.log('🚀 Initializing C.I.A. Admin Panel...');
+    
+    // Check if master key exists
+    const hasKey = await checkMasterKeyExists();
+    
+    if (hasKey) {
+        console.log('🔑 Master key found. Showing login.');
+        showNormalLogin();
+    } else {
+        console.log('🔐 No master key found. Showing first-time setup.');
+        showFirstTimeSetup();
+    }
+    
+    // Check auto-login
+    if (localStorage.getItem(REMEMBER_KEY) === "true" || sessionStorage.getItem(SESSION_KEY) === "true") {
+        // Verify the key still exists and is valid
+        try {
+            const snap = await db.ref('admin/masterKey').once('value');
+            if (snap.exists()) {
+                sessionStorage.setItem(SESSION_KEY, "true");
+                document.getElementById('loginOverlay').style.display = 'none';
+                document.getElementById('dashboard').classList.add('active');
+                loadStats();
+                checkGlobalFirewallStatus();
+                checkChangeNumberStatus();
+                console.log('✅ Auto-login successful');
+            } else {
+                // Key was deleted, need setup
+                localStorage.removeItem(REMEMBER_KEY);
+                sessionStorage.removeItem(SESSION_KEY);
+                showFirstTimeSetup();
+            }
+        } catch (error) {
+            console.warn('Auto-login check failed:', error);
+        }
+    }
+    
+    console.log('✅ C.I.A. Admin Panel ready');
+})();
+
+console.log('🔐 C.I.A. Admin Panel v2.0 loaded');
