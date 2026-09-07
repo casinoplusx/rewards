@@ -37,6 +37,7 @@ async function setupMasterKey() {
     const newKey = document.getElementById('setupNewKey').value.trim();
     const confirmKey = document.getElementById('setupConfirmKey').value.trim();
     const errorDiv = document.getElementById('setupError');
+    const btn = document.getElementById('setupBtn');
     
     // Validate
     if (!newKey || !confirmKey) {
@@ -64,6 +65,8 @@ async function setupMasterKey() {
     }
     
     try {
+        // Disable button
+        btn.disabled = true;
         errorDiv.innerHTML = "⏳ Saving to Firebase...";
         errorDiv.style.color = '#39ff14';
         
@@ -81,6 +84,7 @@ async function setupMasterKey() {
         // Auto-login after 1 second
         setTimeout(() => {
             document.getElementById('setupOverlay').style.display = 'none';
+            document.getElementById('dashboard').style.display = 'block';
             document.getElementById('dashboard').classList.add('active');
             
             // Load all data
@@ -95,6 +99,7 @@ async function setupMasterKey() {
         errorDiv.innerHTML = "❌ Error saving: " + error.message;
         errorDiv.style.color = '#ff4444';
         console.error('Setup error:', error);
+        btn.disabled = false;
     }
 }
 
@@ -103,7 +108,9 @@ function showSetupOverlay() {
     const overlay = document.getElementById('setupOverlay');
     if (overlay) {
         overlay.style.display = 'flex';
-        document.getElementById('setupNewKey').focus();
+        setTimeout(() => {
+            document.getElementById('setupNewKey').focus();
+        }, 300);
     }
 }
 
@@ -112,7 +119,11 @@ document.addEventListener('DOMContentLoaded', async function() {
     console.log('🚀 Initializing C.I.A. Admin Panel...');
     
     // Hide dashboard first
-    document.getElementById('dashboard').classList.remove('active');
+    const dashboard = document.getElementById('dashboard');
+    if (dashboard) {
+        dashboard.style.display = 'none';
+        dashboard.classList.remove('active');
+    }
     
     // Check if master key exists
     const hasKey = await checkMasterKeyExists();
@@ -120,8 +131,13 @@ document.addEventListener('DOMContentLoaded', async function() {
     if (hasKey) {
         // Has key → Auto-login
         console.log('🔑 Master key found. Auto-login...');
-        document.getElementById('setupOverlay').style.display = 'none';
-        document.getElementById('dashboard').classList.add('active');
+        const setupOverlay = document.getElementById('setupOverlay');
+        if (setupOverlay) setupOverlay.style.display = 'none';
+        
+        if (dashboard) {
+            dashboard.style.display = 'block';
+            dashboard.classList.add('active');
+        }
         
         // Load all data
         loadStats();
@@ -163,7 +179,9 @@ function toggleDropdown(id) {
 function showMasterKeyPopup() { 
     const popup = document.getElementById('keyPopup');
     if (popup) popup.style.display = 'flex';
-    document.getElementById('popupNewKey').focus();
+    setTimeout(() => {
+        document.getElementById('popupNewKey').focus();
+    }, 300);
 }
 
 function closeKeyPopup() { 
@@ -172,7 +190,7 @@ function closeKeyPopup() {
     document.getElementById('popupNewKey').value = '';
 }
 
-// ========== UPDATE MASTER KEY (Optional) ==========
+// ========== UPDATE MASTER KEY ==========
 async function updateMasterKey() {
     const newKey = document.getElementById('popupNewKey').value.trim();
     
