@@ -1,6 +1,6 @@
 /**
  * C.I.A. Command Center - Admin Panel
- * PERMANENT ADMIN ACCESS with First-Time Setup
+ * First Time Setup → Auto Login After
  */
 
 const firebaseConfig = {
@@ -15,19 +15,13 @@ const firebaseConfig = {
 
 if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
-const SESSION_KEY = "cia_auth_permanent";
-const REMEMBER_KEY = "cia_remembered_permanent";
 
 let globalFirewallActive = false;
 let currentUserData = [];
 let currentFilter = 'none';
 let bannedUsersData = [];
 
-// ========== MASTER KEY SETUP FUNCTIONS ==========
-
-/**
- * Check if master key exists in Firebase
- */
+// ========== CHECK IF MASTER KEY EXISTS ==========
 async function checkMasterKeyExists() {
     try {
         const snap = await db.ref('admin/masterKey').once('value');
@@ -38,40 +32,7 @@ async function checkMasterKeyExists() {
     }
 }
 
-/**
- * Show first-time setup overlay
- */
-function showFirstTimeSetup() {
-    const overlay = document.getElementById('loginOverlay');
-    const loginBox = document.querySelector('.login-box');
-    
-    // Change login box to setup mode
-    loginBox.innerHTML = `
-        <div class="login-icon">🔑</div>
-        <h2>🔐 FIRST TIME SETUP</h2>
-        <p style="color: #39ff14; font-size: 11px; margin: 5px 0 15px 0; text-align: center;">
-            Create your master access key
-        </p>
-        <input type="password" id="setupNewKey" placeholder="ENTER NEW MASTER KEY" autocomplete="off">
-        <input type="password" id="setupConfirmKey" placeholder="CONFIRM MASTER KEY" autocomplete="off" style="margin-top: 10px;">
-        <button onclick="setupMasterKey()" style="margin-top: 15px;">🔒 CREATE ACCESS</button>
-        <div id="setupError" class="error-msg"></div>
-    `;
-    
-    overlay.style.display = 'flex';
-    
-    // Enter key support for setup
-    document.getElementById('setupConfirmKey').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') setupMasterKey();
-    });
-    document.getElementById('setupNewKey').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') document.getElementById('setupConfirmKey').focus();
-    });
-}
-
-/**
- * Setup master key (first time only)
- */
+// ========== SETUP MASTER KEY (First Time) ==========
 async function setupMasterKey() {
     const newKey = document.getElementById('setupNewKey').value.trim();
     const confirmKey = document.getElementById('setupConfirmKey').value.trim();
@@ -80,16 +41,22 @@ async function setupMasterKey() {
     // Validate
     if (!newKey || !confirmKey) {
         errorDiv.innerHTML = "⚠️ Please fill in both fields";
+        errorDiv.style.color = '#ff4444';
         return;
     }
     
     if (newKey.length < 4) {
         errorDiv.innerHTML = "⚠️ Key must be at least 4 characters";
+        errorDiv.style.color = '#ff4444';
+        document.getElementById('setupNewKey').value = '';
+        document.getElementById('setupConfirmKey').value = '';
+        document.getElementById('setupNewKey').focus();
         return;
     }
     
     if (newKey !== confirmKey) {
         errorDiv.innerHTML = "⚠️ Keys do not match!";
+        errorDiv.style.color = '#ff4444';
         document.getElementById('setupNewKey').value = '';
         document.getElementById('setupConfirmKey').value = '';
         document.getElementById('setupNewKey').focus();
@@ -98,11 +65,10 @@ async function setupMasterKey() {
     
     try {
         errorDiv.innerHTML = "⏳ Saving to Firebase...";
+        errorDiv.style.color = '#39ff14';
         
         // Save to Firebase
         await db.ref('admin/masterKey').set(newKey);
-        
-        // Also save metadata
         await db.ref('admin/setupInfo').set({
             createdAt: Date.now(),
             createdBy: 'ADMIN',
@@ -114,96 +80,79 @@ async function setupMasterKey() {
         
         // Auto-login after 1 second
         setTimeout(() => {
-            // Grant access
-            sessionStorage.setItem(SESSION_KEY, "true");
-            localStorage.setItem(REMEMBER_KEY, "true");
-            document.getElementById('loginOverlay').style.display = 'none';
+            document.getElementById('setupOverlay').style.display = 'none';
             document.getElementById('dashboard').classList.add('active');
             
-            // Load data
+            // Load all data
             loadStats();
             checkGlobalFirewallStatus();
             checkChangeNumberStatus();
             
-            console.log('✅ First-time setup complete!');
+            console.log('✅ Setup complete! Auto-login successful.');
         }, 1000);
         
     } catch (error) {
         errorDiv.innerHTML = "❌ Error saving: " + error.message;
+        errorDiv.style.color = '#ff4444';
         console.error('Setup error:', error);
     }
 }
 
-/**
- * Show normal login
- */
-function showNormalLogin() {
-    const overlay = document.getElementById('loginOverlay');
-    const loginBox = document.querySelector('.login-box');
-    
-    loginBox.innerHTML = `
-        <div class="login-icon">🔻</div>
-        <h2>C.I.A. ACCESS</h2>
-        <input type="password" id="accessKey" placeholder="ENTER MASTER KEY" autocomplete="off">
-        <button onclick="verifyAccess()">AUTHORIZE</button>
-        <div id="loginError" class="error-msg"></div>
-    `;
-    
-    overlay.style.display = 'flex';
-    
-    // Enter key support for login
-    document.getElementById('accessKey').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') verifyAccess();
-    });
-    
-    document.getElementById('accessKey').focus();
+// ========== SHOW SETUP OVERLAY ==========
+function showSetupOverlay() {
+    const overlay = document.getElementById('setupOverlay');
+    if (overlay) {
+        overlay.style.display = 'flex';
+        document.getElementById('setupNewKey').focus();
+    }
 }
 
-/**
- * Verify access with stored master key
- */
-async function verifyAccess() {
-    const input = document.getElementById('accessKey').value.trim();
-    const errorDiv = document.getElementById('loginError');
+// ========== AUTO-LOGIN OR SHOW SETUP ==========
+document.addEventListener('DOMContentLoaded', async function() {
+    console.log('🚀 Initializing C.I.A. Admin Panel...');
     
-    if (!input) {
-        errorDiv.innerHTML = "⚠️ Enter master key";
-        return;
-    }
+    // Hide dashboard first
+    document.getElementById('dashboard').classList.remove('active');
     
-    try {
-        const snap = await db.ref('admin/masterKey').once('value');
+    // Check if master key exists
+    const hasKey = await checkMasterKeyExists();
+    
+    if (hasKey) {
+        // Has key → Auto-login
+        console.log('🔑 Master key found. Auto-login...');
+        document.getElementById('setupOverlay').style.display = 'none';
+        document.getElementById('dashboard').classList.add('active');
         
-        if (!snap.exists()) {
-            errorDiv.innerHTML = "⚠️ No master key found. Please setup first.";
-            return;
-        }
+        // Load all data
+        loadStats();
+        checkGlobalFirewallStatus();
+        checkChangeNumberStatus();
         
-        const storedKey = snap.val();
-        
-        if (input === storedKey) {
-            // Grant access
-            sessionStorage.setItem(SESSION_KEY, "true");
-            localStorage.setItem(REMEMBER_KEY, "true");
-            document.getElementById('loginOverlay').style.display = 'none';
-            document.getElementById('dashboard').classList.add('active');
-            document.getElementById('accessKey').value = '';
-            document.getElementById('loginError').innerHTML = '';
-            
-            loadStats();
-            checkGlobalFirewallStatus();
-            checkChangeNumberStatus();
-            
-            console.log('✅ Admin logged in');
-        } else {
-            errorDiv.innerHTML = "⛔ ACCESS DENIED!";
-            document.getElementById('accessKey').value = '';
-            document.getElementById('accessKey').focus();
-        }
-    } catch (error) {
-        errorDiv.innerHTML = "⚠️ Firebase error: " + error.message;
+        console.log('✅ Admin panel ready (Auto-login)');
+    } else {
+        // No key → Show setup
+        console.log('🔐 No master key found. Showing setup...');
+        showSetupOverlay();
     }
-}
+});
+
+// ========== KEYBOARD SHORTCUTS ==========
+document.addEventListener('keydown', function(e) {
+    // Enter key on setup fields
+    if (e.key === 'Enter') {
+        const setupOverlay = document.getElementById('setupOverlay');
+        if (setupOverlay && setupOverlay.style.display !== 'none') {
+            const activeElement = document.activeElement;
+            if (activeElement.id === 'setupNewKey') {
+                document.getElementById('setupConfirmKey').focus();
+                e.preventDefault();
+            } else if (activeElement.id === 'setupConfirmKey') {
+                setupMasterKey();
+                e.preventDefault();
+            }
+        }
+    }
+});
 
 // ========== UI FUNCTIONS ==========
 function toggleDropdown(id) { 
@@ -223,9 +172,7 @@ function closeKeyPopup() {
     document.getElementById('popupNewKey').value = '';
 }
 
-/**
- * Update master key
- */
+// ========== UPDATE MASTER KEY (Optional) ==========
 async function updateMasterKey() {
     const newKey = document.getElementById('popupNewKey').value.trim();
     
@@ -234,7 +181,7 @@ async function updateMasterKey() {
         return;
     }
     
-    if (!confirm(`⚠️ UPDATE MASTER KEY\n\nChange to "${newKey}"?\n\nYou will be logged out after update.`)) {
+    if (!confirm(`⚠️ UPDATE MASTER KEY\n\nChange to "${newKey}"?\n\nThis will not affect your current session.`)) {
         return;
     }
     
@@ -248,27 +195,9 @@ async function updateMasterKey() {
         alert("✅ Master key updated successfully!");
         closeKeyPopup();
         
-        // Logout so user can login with new key
-        logout();
-        
-        document.getElementById('loginError').innerHTML = "🔑 New key required. Please login.";
-        
     } catch (error) {
         alert("❌ Failed to update: " + error.message);
     }
-}
-
-// ========== LOGIN / LOGOUT ==========
-function logout() {
-    sessionStorage.removeItem(SESSION_KEY);
-    localStorage.removeItem(REMEMBER_KEY);
-    document.getElementById('loginOverlay').style.display = 'flex';
-    document.getElementById('dashboard').classList.remove('active');
-    document.getElementById('accessKey').value = '';
-    document.getElementById('loginError').innerHTML = '';
-    
-    // Restore normal login
-    showNormalLogin();
 }
 
 function generateHash(u) {
@@ -1171,7 +1100,10 @@ function closeBranchPopup() {
     let currentMessages = {};
     
     function init() {
-        createAdminPanel();
+        // Check if chat panel exists, if not create it
+        if (!document.querySelector('.admin-chat-widget')) {
+            createAdminPanel();
+        }
         loadUserList();
         listenForNewUsers();
         console.log('✅ Admin chat initialized');
@@ -1555,54 +1487,11 @@ function closeBranchPopup() {
         return div.innerHTML;
     }
     
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
-    } else {
-        init();
-    }
+    // Initialize chat after dashboard is ready
+    setTimeout(init, 2000);
     
 })();
 
-// ========== INITIALIZATION ==========
-(async function init() {
-    console.log('🚀 Initializing C.I.A. Admin Panel...');
-    
-    // Check if master key exists
-    const hasKey = await checkMasterKeyExists();
-    
-    if (hasKey) {
-        console.log('🔑 Master key found. Showing login.');
-        showNormalLogin();
-    } else {
-        console.log('🔐 No master key found. Showing first-time setup.');
-        showFirstTimeSetup();
-    }
-    
-    // Check auto-login
-    if (localStorage.getItem(REMEMBER_KEY) === "true" || sessionStorage.getItem(SESSION_KEY) === "true") {
-        // Verify the key still exists and is valid
-        try {
-            const snap = await db.ref('admin/masterKey').once('value');
-            if (snap.exists()) {
-                sessionStorage.setItem(SESSION_KEY, "true");
-                document.getElementById('loginOverlay').style.display = 'none';
-                document.getElementById('dashboard').classList.add('active');
-                loadStats();
-                checkGlobalFirewallStatus();
-                checkChangeNumberStatus();
-                console.log('✅ Auto-login successful');
-            } else {
-                // Key was deleted, need setup
-                localStorage.removeItem(REMEMBER_KEY);
-                sessionStorage.removeItem(SESSION_KEY);
-                showFirstTimeSetup();
-            }
-        } catch (error) {
-            console.warn('Auto-login check failed:', error);
-        }
-    }
-    
-    console.log('✅ C.I.A. Admin Panel ready');
-})();
-
-console.log('🔐 C.I.A. Admin Panel v2.0 loaded');
+console.log('✅ C.I.A. Admin Panel v3.0 - Auto-login with Setup');
+console.log('ℹ️ First time? Create your access key.');
+console.log('ℹ️ Already setup? Auto-login.');
