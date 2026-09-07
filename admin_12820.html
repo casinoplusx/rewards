@@ -52,93 +52,429 @@
             to { transform: translateX(100%); opacity: 0; }
         }
 
-        /* Setup Overlay Styles */
+        /* ========== GOLDEN FANTASY ARCADE CARNIVAL THEME ========== */
+        .login-overlay {
+            background: radial-gradient(ellipse at center, #1a0a00 0%, #0d0500 50%, #000000 100%) !important;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            overflow: hidden;
+        }
+
+        /* Animated Sparkle Background */
+        .login-overlay::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: 
+                radial-gradient(2px 2px at 20% 30%, rgba(255, 215, 0, 0.8), transparent),
+                radial-gradient(2px 2px at 40% 70%, rgba(255, 200, 50, 0.6), transparent),
+                radial-gradient(3px 3px at 60% 20%, rgba(255, 215, 0, 0.9), transparent),
+                radial-gradient(2px 2px at 80% 80%, rgba(255, 200, 50, 0.5), transparent),
+                radial-gradient(3px 3px at 10% 90%, rgba(255, 215, 0, 0.7), transparent),
+                radial-gradient(2px 2px at 90% 10%, rgba(255, 200, 50, 0.8), transparent),
+                radial-gradient(3px 3px at 50% 50%, rgba(255, 215, 0, 0.3), transparent);
+            background-size: 200px 200px;
+            animation: sparkleFloat 20s linear infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes sparkleFloat {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            100% { transform: translate(-50px, -50px) rotate(360deg); }
+        }
+
+        /* Confetti Particles */
+        .confetti-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            top: -10px;
+            animation: confettiFall linear infinite;
+        }
+
+        .confetti:nth-child(1) { left: 10%; animation-duration: 6s; animation-delay: 0s; background: #ffd700; }
+        .confetti:nth-child(2) { left: 20%; animation-duration: 8s; animation-delay: 1s; background: #ff6b35; }
+        .confetti:nth-child(3) { left: 30%; animation-duration: 7s; animation-delay: 2s; background: #ffd700; }
+        .confetti:nth-child(4) { left: 40%; animation-duration: 9s; animation-delay: 0.5s; background: #ff4500; }
+        .confetti:nth-child(5) { left: 50%; animation-duration: 6.5s; animation-delay: 1.5s; background: #ffd700; }
+        .confetti:nth-child(6) { left: 60%; animation-duration: 7.5s; animation-delay: 0.8s; background: #ff6b35; }
+        .confetti:nth-child(7) { left: 70%; animation-duration: 8.5s; animation-delay: 2.2s; background: #ffd700; }
+        .confetti:nth-child(8) { left: 80%; animation-duration: 6.8s; animation-delay: 1.8s; background: #ff4500; }
+        .confetti:nth-child(9) { left: 90%; animation-duration: 7.2s; animation-delay: 0.3s; background: #ffd700; }
+        .confetti:nth-child(10) { left: 15%; animation-duration: 8.2s; animation-delay: 2.5s; background: #ff6b35; }
+        .confetti:nth-child(11) { left: 45%; animation-duration: 6.3s; animation-delay: 1.2s; background: #ffd700; }
+        .confetti:nth-child(12) { left: 75%; animation-duration: 7.8s; animation-delay: 0.7s; background: #ff4500; }
+
+        .confetti:nth-child(odd) {
+            clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+        }
+
+        .confetti:nth-child(even) {
+            clip-path: polygon(0% 0%, 100% 0%, 50% 100%);
+            border-radius: 2px;
+        }
+
+        @keyframes confettiFall {
+            0% { transform: translateY(-10px) rotate(0deg) scale(1); opacity: 1; }
+            100% { transform: translateY(110vh) rotate(720deg) scale(0.5); opacity: 0; }
+        }
+
+        /* Golden Login Box */
+        .login-box {
+            position: relative;
+            z-index: 1;
+            background: linear-gradient(145deg, rgba(20, 10, 0, 0.95), rgba(10, 5, 0, 0.98));
+            border: 2px solid rgba(255, 215, 0, 0.4);
+            border-radius: 24px;
+            padding: 40px 35px 35px 35px;
+            width: 100%;
+            max-width: 380px;
+            box-shadow: 
+                0 0 60px rgba(255, 215, 0, 0.15),
+                0 0 120px rgba(255, 215, 0, 0.05),
+                inset 0 0 60px rgba(255, 215, 0, 0.05);
+            animation: goldenGlow 3s ease-in-out infinite;
+            backdrop-filter: blur(10px);
+        }
+
+        @keyframes goldenGlow {
+            0%, 100% { border-color: rgba(255, 215, 0, 0.4); box-shadow: 0 0 60px rgba(255, 215, 0, 0.15), 0 0 120px rgba(255, 215, 0, 0.05); }
+            50% { border-color: rgba(255, 215, 0, 0.8); box-shadow: 0 0 80px rgba(255, 215, 0, 0.25), 0 0 150px rgba(255, 215, 0, 0.1); }
+        }
+
+        .login-box::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            border-radius: 24px;
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.3), transparent, rgba(255, 215, 0, 0.3), transparent);
+            z-index: -1;
+            animation: borderRotate 6s linear infinite;
+            background-size: 300% 300%;
+        }
+
+        @keyframes borderRotate {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Golden Icon */
         .setup-icon {
-            font-size: 48px;
-            margin-bottom: 10px;
+            font-size: 56px;
+            margin-bottom: 8px;
+            display: block;
+            text-align: center;
+            animation: iconPulse 2s ease-in-out infinite;
+            filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.4));
         }
+
+        @keyframes iconPulse {
+            0%, 100% { transform: scale(1) rotate(0deg); }
+            50% { transform: scale(1.1) rotate(5deg); }
+        }
+
+        /* Golden Title */
+        .login-box h2 {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 20px;
+            font-weight: 700;
+            text-align: center;
+            margin: 5px 0 5px 0;
+            background: linear-gradient(135deg, #ffd700, #ffed4a, #ffd700, #ffb800);
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: goldenShine 3s ease-in-out infinite;
+            letter-spacing: 3px;
+            text-shadow: 0 0 30px rgba(255, 215, 0, 0.2);
+        }
+
+        @keyframes goldenShine {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        /* Subtitle */
         .setup-subtitle {
-            color: #39ff14;
+            color: rgba(255, 215, 0, 0.7);
             font-size: 11px;
-            margin: 5px 0 15px 0;
+            margin: 5px 0 20px 0;
             text-align: center;
+            font-family: 'JetBrains Mono', monospace;
+            letter-spacing: 2px;
+            text-transform: uppercase;
         }
-        .setup-error {
-            color: #ff4444;
-            font-size: 12px;
-            margin-top: 10px;
-            min-height: 20px;
-            text-align: center;
-        }
-        .setup-success {
-            color: #39ff14;
-            font-size: 12px;
-            margin-top: 10px;
-            min-height: 20px;
-            text-align: center;
-        }
+
+        /* Golden Input Fields */
         .setup-input {
             width: 100%;
-            padding: 12px 15px;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 8px;
-            color: #fff;
+            padding: 14px 18px;
+            background: rgba(255, 215, 0, 0.05);
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            border-radius: 12px;
+            color: #ffd700;
             font-family: 'JetBrains Mono', monospace;
             font-size: 14px;
             transition: all 0.3s ease;
             box-sizing: border-box;
+            letter-spacing: 1px;
         }
+
         .setup-input:focus {
             outline: none;
-            border-color: #39ff14;
-            box-shadow: 0 0 20px rgba(57, 255, 20, 0.1);
+            border-color: #ffd700;
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.15), inset 0 0 30px rgba(255, 215, 0, 0.05);
+            background: rgba(255, 215, 0, 0.08);
         }
+
         .setup-input::placeholder {
-            color: rgba(255,255,255,0.3);
+            color: rgba(255, 215, 0, 0.3);
+            letter-spacing: 2px;
+            font-size: 12px;
         }
+
+        /* Golden Button */
         .setup-btn {
             width: 100%;
-            padding: 14px;
-            background: linear-gradient(135deg, #39ff14, #00cc00);
+            padding: 16px;
+            background: linear-gradient(135deg, #ffd700, #f0c000, #ffd700);
+            background-size: 200% 200%;
             border: none;
-            border-radius: 8px;
-            color: #0a0f1a;
+            border-radius: 12px;
+            color: #1a0a00;
             font-family: 'JetBrains Mono', monospace;
             font-weight: 700;
             font-size: 14px;
             cursor: pointer;
             transition: all 0.3s ease;
-            margin-top: 15px;
-            letter-spacing: 2px;
+            margin-top: 18px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            animation: btnShine 3s ease-in-out infinite;
+            box-shadow: 0 0 40px rgba(255, 215, 0, 0.2);
         }
+
+        @keyframes btnShine {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
         .setup-btn:hover {
-            transform: scale(1.02);
-            box-shadow: 0 0 30px rgba(57, 255, 20, 0.3);
+            transform: scale(1.03);
+            box-shadow: 0 0 60px rgba(255, 215, 0, 0.4);
         }
+
         .setup-btn:active {
-            transform: scale(0.98);
+            transform: scale(0.97);
         }
+
         .setup-btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
             transform: none;
         }
+
+        /* Error Message */
+        .setup-error {
+            color: #ff6b35;
+            font-size: 12px;
+            margin-top: 12px;
+            min-height: 20px;
+            text-align: center;
+            font-family: 'JetBrains Mono', monospace;
+            text-shadow: 0 0 20px rgba(255, 107, 53, 0.3);
+        }
+
+        .setup-success {
+            color: #ffd700;
+            font-size: 12px;
+            margin-top: 12px;
+            min-height: 20px;
+            text-align: center;
+            font-family: 'JetBrains Mono', monospace;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+        }
+
+        /* Decorative Golden Corners */
+        .login-box .corner {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border-color: rgba(255, 215, 0, 0.3);
+            border-style: solid;
+            border-width: 0;
+        }
+
+        .login-box .corner-tl {
+            top: 10px;
+            left: 10px;
+            border-top-width: 2px;
+            border-left-width: 2px;
+        }
+
+        .login-box .corner-tr {
+            top: 10px;
+            right: 10px;
+            border-top-width: 2px;
+            border-right-width: 2px;
+        }
+
+        .login-box .corner-bl {
+            bottom: 10px;
+            left: 10px;
+            border-bottom-width: 2px;
+            border-left-width: 2px;
+        }
+
+        .login-box .corner-br {
+            bottom: 10px;
+            right: 10px;
+            border-bottom-width: 2px;
+            border-right-width: 2px;
+        }
+
+        /* Floating Golden Orbs */
+        .golden-orb {
+            position: absolute;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 0;
+            animation: orbFloat 8s ease-in-out infinite;
+        }
+
+        .golden-orb-1 {
+            width: 150px;
+            height: 150px;
+            top: -75px;
+            right: -50px;
+            background: radial-gradient(circle, rgba(255, 215, 0, 0.08), transparent 70%);
+            animation-delay: 0s;
+        }
+
+        .golden-orb-2 {
+            width: 100px;
+            height: 100px;
+            bottom: -50px;
+            left: -30px;
+            background: radial-gradient(circle, rgba(255, 215, 0, 0.06), transparent 70%);
+            animation-delay: -3s;
+        }
+
+        .golden-orb-3 {
+            width: 80px;
+            height: 80px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: radial-gradient(circle, rgba(255, 215, 0, 0.04), transparent 70%);
+            animation-delay: -5s;
+        }
+
+        @keyframes orbFloat {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(20px, -20px) scale(1.1); }
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .login-box {
+                padding: 30px 20px 25px 20px;
+                margin: 0 15px;
+            }
+            
+            .login-box h2 {
+                font-size: 17px;
+                letter-spacing: 2px;
+            }
+            
+            .setup-icon {
+                font-size: 44px;
+            }
+            
+            .setup-input {
+                padding: 12px 15px;
+                font-size: 13px;
+            }
+            
+            .setup-btn {
+                padding: 14px;
+                font-size: 13px;
+            }
+        }
+
+        /* Keep dashboard styles */
+        .dashboard {
+            display: none;
+        }
+        .dashboard.active {
+            display: block;
+        }
     </style>
 </head>
 <body>
 
-<!-- ========== SETUP OVERLAY (First Time Only - No Login) ========== -->
+<!-- ========== CONFETTI PARTICLES ========== -->
+<div class="confetti-container">
+    <div class="confetti"></div>
+    <div class="confetti"></div>
+    <div class="confetti"></div>
+    <div class="confetti"></div>
+    <div class="confetti"></div>
+    <div class="confetti"></div>
+    <div class="confetti"></div>
+    <div class="confetti"></div>
+    <div class="confetti"></div>
+    <div class="confetti"></div>
+    <div class="confetti"></div>
+    <div class="confetti"></div>
+</div>
+
+<!-- ========== GOLDEN SETUP OVERLAY ========== -->
 <div id="setupOverlay" class="login-overlay" style="display: none;">
+    <div class="golden-orb golden-orb-1"></div>
+    <div class="golden-orb golden-orb-2"></div>
+    <div class="golden-orb golden-orb-3"></div>
+    
     <div class="login-box">
-        <div class="setup-icon">🔑</div>
-        <h2>🔐 FIRST TIME SETUP</h2>
-        <p class="setup-subtitle">Create your master access key</p>
+        <div class="corner corner-tl"></div>
+        <div class="corner corner-tr"></div>
+        <div class="corner corner-bl"></div>
+        <div class="corner corner-br"></div>
         
-        <input type="password" id="setupNewKey" class="setup-input" placeholder="ENTER MASTER KEY" autocomplete="off">
-        <input type="password" id="setupConfirmKey" class="setup-input" placeholder="CONFIRM MASTER KEY" autocomplete="off" style="margin-top: 10px;">
+        <span class="setup-icon">🎰</span>
+        <h2>✦ GOLDEN ACCESS ✦</h2>
+        <p class="setup-subtitle">✦ Create Your Master Key ✦</p>
         
-        <button class="setup-btn" onclick="setupMasterKey()" id="setupBtn">🔒 CREATE ACCESS</button>
+        <input type="password" id="setupNewKey" class="setup-input" placeholder="✦ ENTER MASTER KEY" autocomplete="off">
+        <input type="password" id="setupConfirmKey" class="setup-input" placeholder="✦ CONFIRM MASTER KEY" autocomplete="off" style="margin-top: 10px;">
+        
+        <button class="setup-btn" onclick="setupMasterKey()" id="setupBtn">✦ CREATE ACCESS ✦</button>
         <div id="setupError" class="setup-error"></div>
     </div>
 </div>
