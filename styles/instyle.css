@@ -1,9 +1,34 @@
 /* ============================================================
-   ANIME NIGHT FESTIVAL THEME - REMASTERED CARDS & FORMS
-   Premium glass-morphism with magical glow effects
-   Color palette: Magenta, Gold, Deep Blue
+   FESTIVAL NIGHT - PREMIUM TRANSPARENT GLASS DESIGN
+   Fonts: Cinzel, Poppins, Orbitron
+   Colors: Magenta, Gold, Deep Blue
+   High transparency to show background image
    ============================================================ */
 
+/* ========== VARIABLES ========== */
+:root {
+    --festival-magenta: #d43f7a;
+    --festival-magenta-light: #e8699e;
+    --festival-magenta-dark: #a82a5a;
+    --festival-magenta-glow: rgba(212, 63, 122, 0.35);
+    --festival-gold: #f5c842;
+    --festival-gold-light: #fae07a;
+    --festival-gold-dark: #d4a82a;
+    --festival-gold-glow: rgba(245, 200, 66, 0.25);
+    --festival-deep-blue: #0a0e2a;
+    --festival-blue-mid: #1a2a5a;
+    --festival-pink: #f5a0c0;
+    --text-light: #f5f0eb;
+    --text-muted: rgba(255, 255, 255, 0.8);
+    --text-dim: rgba(255, 255, 255, 0.4);
+    --shadow-festival: rgba(212, 63, 122, 0.15);
+    --font-cinzel: 'Cinzel', serif;
+    --font-orbitron: 'Orbitron', monospace;
+    --font-poppins: 'Poppins', sans-serif;
+    --font-playfair: 'Playfair Display', serif;
+}
+
+/* ========== RESET ========== */
 * {
     margin: 0;
     padding: 0;
@@ -12,34 +37,11 @@
     user-select: none;
 }
 
-/* ========== VARIABLES ========== */
-:root {
-    --festival-magenta: #d43f7a;
-    --festival-magenta-light: #e8699e;
-    --festival-magenta-glow: rgba(212, 63, 122, 0.3);
-    --festival-gold: #f5c842;
-    --festival-gold-light: #fae07a;
-    --festival-gold-glow: rgba(245, 200, 66, 0.25);
-    --festival-deep-blue: #0a0e2a;
-    --festival-blue-mid: #1a2a5a;
-    --festival-warm: #f5d9b8;
-    --festival-pink: #f5a0c0;
-    --text-light: #f5f0eb;
-    --text-muted: rgba(255, 255, 255, 0.7);
-    --text-dim: rgba(255, 255, 255, 0.4);
-    --shadow-festival: rgba(212, 63, 122, 0.15);
-    --font-serif: 'Playfair Display', serif;
-    --font-cinzel: 'Cinzel', serif;
-    --font-forum: 'Forum', cursive;
-    --font-display: 'Orbitron', monospace;
-    --font-body: 'Poppins', sans-serif;
-}
-
 /* ========== BASE ========== */
 body {
     min-height: 100vh;
     background: var(--festival-deep-blue);
-    font-family: var(--font-body);
+    font-family: var(--font-poppins);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -48,7 +50,7 @@ body {
     overflow-x: hidden;
 }
 
-/* ========== MAIN BACKGROUND IMAGE ========== */
+/* ========== BACKGROUND ========== */
 .bg-festival {
     position: fixed;
     top: 0;
@@ -63,7 +65,6 @@ body {
     pointer-events: none;
 }
 
-/* ========== NIGHT SKY OVERLAY ========== */
 .bg-night-sky {
     position: fixed;
     top: 0;
@@ -73,10 +74,10 @@ body {
     z-index: 0;
     pointer-events: none;
     background: 
-        radial-gradient(ellipse at 50% 30%, rgba(10, 14, 42, 0.2) 0%, transparent 60%),
-        radial-gradient(ellipse at 50% 80%, rgba(10, 14, 42, 0.4) 0%, transparent 50%),
-        radial-gradient(ellipse at 20% 50%, rgba(212, 63, 122, 0.05) 0%, transparent 40%),
-        radial-gradient(ellipse at 80% 50%, rgba(245, 200, 66, 0.03) 0%, transparent 40%);
+        radial-gradient(ellipse at 50% 30%, rgba(10, 14, 42, 0.1) 0%, transparent 60%),
+        radial-gradient(ellipse at 50% 80%, rgba(10, 14, 42, 0.3) 0%, transparent 50%),
+        radial-gradient(ellipse at 20% 50%, rgba(212, 63, 122, 0.03) 0%, transparent 40%),
+        radial-gradient(ellipse at 80% 50%, rgba(245, 200, 66, 0.02) 0%, transparent 40%);
     animation: nightGlow 8s ease-in-out infinite alternate;
 }
 
@@ -85,7 +86,7 @@ body {
     100% { opacity: 1; }
 }
 
-/* ========== STARS ========== */
+/* Stars */
 .bg-night-sky::before {
     content: '';
     position: absolute;
@@ -102,8 +103,7 @@ body {
         radial-gradient(2px 2px at 15% 40%, rgba(255,255,255,0.15), transparent),
         radial-gradient(1px 1px at 45% 45%, rgba(255,255,255,0.25), transparent),
         radial-gradient(2px 2px at 65% 35%, rgba(255,255,255,0.2), transparent),
-        radial-gradient(1px 1px at 85% 50%, rgba(255,255,255,0.3), transparent),
-        radial-gradient(2px 2px at 25% 55%, rgba(255,255,255,0.15), transparent);
+        radial-gradient(1px 1px at 85% 50%, rgba(255,255,255,0.3), transparent);
     background-size: 200px 200px;
     animation: twinkle 4s ease-in-out infinite alternate;
 }
@@ -136,68 +136,36 @@ body {
 .firework.burst-1 {
     top: 10%;
     left: 20%;
-    background: radial-gradient(circle, 
-        rgba(212, 63, 122, 0.15) 0%,
-        rgba(245, 200, 66, 0.08) 30%,
-        transparent 70%
-    );
+    background: radial-gradient(circle, rgba(212, 63, 122, 0.12) 0%, rgba(245, 200, 66, 0.06) 30%, transparent 70%);
     animation: fireworkBurst 6s ease-in-out infinite;
     animation-delay: 0s;
 }
-
 .firework.burst-2 {
     top: 15%;
     right: 25%;
-    background: radial-gradient(circle, 
-        rgba(245, 200, 66, 0.12) 0%,
-        rgba(212, 63, 122, 0.08) 30%,
-        transparent 70%
-    );
+    background: radial-gradient(circle, rgba(245, 200, 66, 0.10) 0%, rgba(212, 63, 122, 0.06) 30%, transparent 70%);
     animation: fireworkBurst 7s ease-in-out infinite;
     animation-delay: 2s;
 }
-
 .firework.burst-3 {
     top: 5%;
     left: 50%;
     transform: translateX(-50%);
-    background: radial-gradient(circle, 
-        rgba(212, 63, 122, 0.1) 0%,
-        rgba(245, 200, 66, 0.06) 30%,
-        transparent 70%
-    );
+    background: radial-gradient(circle, rgba(212, 63, 122, 0.08) 0%, rgba(245, 200, 66, 0.04) 30%, transparent 70%);
     animation: fireworkBurst 8s ease-in-out infinite;
     animation-delay: 4s;
 }
 
 @keyframes fireworkBurst {
-    0% { 
-        opacity: 0; 
-        transform: scale(0.3) rotate(0deg);
-    }
-    20% { 
-        opacity: 1; 
-        transform: scale(1.2) rotate(30deg);
-    }
-    40% { 
-        opacity: 0.8; 
-        transform: scale(1.5) rotate(60deg);
-    }
-    60% { 
-        opacity: 0.6; 
-        transform: scale(1.8) rotate(90deg);
-    }
-    80% { 
-        opacity: 0.3; 
-        transform: scale(2) rotate(120deg);
-    }
-    100% { 
-        opacity: 0; 
-        transform: scale(2.5) rotate(180deg);
-    }
+    0% { opacity: 0; transform: scale(0.3) rotate(0deg); }
+    20% { opacity: 1; transform: scale(1.2) rotate(30deg); }
+    40% { opacity: 0.8; transform: scale(1.5) rotate(60deg); }
+    60% { opacity: 0.6; transform: scale(1.8) rotate(90deg); }
+    80% { opacity: 0.3; transform: scale(2) rotate(120deg); }
+    100% { opacity: 0; transform: scale(2.5) rotate(180deg); }
 }
 
-/* ========== MAGICAL BOKEH ========== */
+/* ========== BOKEH ========== */
 .bokeh {
     position: fixed;
     top: 0;
@@ -213,69 +181,20 @@ body {
     position: absolute;
     border-radius: 50%;
     opacity: 0;
-    animation: bokehFloat 12s ease-in-out infinite;
+    animation: bokehFloat 14s ease-in-out infinite;
 }
-
-.bokeh-circle:nth-child(1) {
-    width: 40px;
-    height: 40px;
-    top: 20%;
-    left: 10%;
-    background: radial-gradient(circle, rgba(245, 200, 66, 0.15), transparent);
-    animation-delay: 0s;
-}
-.bokeh-circle:nth-child(2) {
-    width: 60px;
-    height: 60px;
-    top: 40%;
-    right: 15%;
-    background: radial-gradient(circle, rgba(212, 63, 122, 0.12), transparent);
-    animation-delay: 2s;
-}
-.bokeh-circle:nth-child(3) {
-    width: 30px;
-    height: 30px;
-    top: 60%;
-    left: 20%;
-    background: radial-gradient(circle, rgba(245, 200, 66, 0.1), transparent);
-    animation-delay: 4s;
-}
-.bokeh-circle:nth-child(4) {
-    width: 50px;
-    height: 50px;
-    top: 30%;
-    left: 60%;
-    background: radial-gradient(circle, rgba(212, 63, 122, 0.1), transparent);
-    animation-delay: 1s;
-}
-.bokeh-circle:nth-child(5) {
-    width: 35px;
-    height: 35px;
-    top: 70%;
-    right: 30%;
-    background: radial-gradient(circle, rgba(245, 200, 66, 0.12), transparent);
-    animation-delay: 3s;
-}
+.bokeh-circle:nth-child(1) { width: 40px; height: 40px; top: 20%; left: 10%; background: radial-gradient(circle, rgba(245, 200, 66, 0.12), transparent); animation-delay: 0s; }
+.bokeh-circle:nth-child(2) { width: 60px; height: 60px; top: 40%; right: 15%; background: radial-gradient(circle, rgba(212, 63, 122, 0.10), transparent); animation-delay: 2s; }
+.bokeh-circle:nth-child(3) { width: 30px; height: 30px; top: 60%; left: 20%; background: radial-gradient(circle, rgba(245, 200, 66, 0.08), transparent); animation-delay: 4s; }
+.bokeh-circle:nth-child(4) { width: 50px; height: 50px; top: 30%; left: 60%; background: radial-gradient(circle, rgba(212, 63, 122, 0.08), transparent); animation-delay: 1s; }
+.bokeh-circle:nth-child(5) { width: 35px; height: 35px; top: 70%; right: 30%; background: radial-gradient(circle, rgba(245, 200, 66, 0.10), transparent); animation-delay: 3s; }
 
 @keyframes bokehFloat {
-    0% {
-        opacity: 0;
-        transform: translate(0, 0) scale(0.5);
-    }
-    20% {
-        opacity: 0.8;
-    }
-    50% {
-        opacity: 0.6;
-        transform: translate(30px, -30px) scale(1.2);
-    }
-    80% {
-        opacity: 0.4;
-    }
-    100% {
-        opacity: 0;
-        transform: translate(-20px, -60px) scale(0.8);
-    }
+    0% { opacity: 0; transform: translate(0, 0) scale(0.5); }
+    20% { opacity: 0.8; }
+    50% { opacity: 0.6; transform: translate(30px, -30px) scale(1.2); }
+    80% { opacity: 0.4; }
+    100% { opacity: 0; transform: translate(-20px, -60px) scale(0.8); }
 }
 
 /* ========== CONFETTI ========== */
@@ -296,9 +215,8 @@ body {
     height: 12px;
     top: -20px;
     opacity: 0;
-    animation: confettiFall 10s linear infinite;
+    animation: confettiFall 12s linear infinite;
 }
-
 .confetti-piece.pink { background: var(--festival-pink); }
 .confetti-piece.gold { background: var(--festival-gold); }
 .confetti-piece.magenta { background: var(--festival-magenta); }
@@ -314,20 +232,10 @@ body {
 .confetti-piece:nth-child(9) { left: 90%; animation-delay: 2.8s; }
 
 @keyframes confettiFall {
-    0% {
-        transform: translateY(-20px) rotate(0deg) scale(1);
-        opacity: 0;
-    }
-    10% {
-        opacity: 0.8;
-    }
-    90% {
-        opacity: 0.8;
-    }
-    100% {
-        transform: translateY(110vh) rotate(720deg) scale(0.5);
-        opacity: 0;
-    }
+    0% { transform: translateY(-20px) rotate(0deg) scale(1); opacity: 0; }
+    10% { opacity: 0.8; }
+    90% { opacity: 0.8; }
+    100% { transform: translateY(110vh) rotate(720deg) scale(0.5); opacity: 0; }
 }
 
 /* ========== LIVE TICKER ========== */
@@ -336,9 +244,10 @@ body {
     top: 20px;
     left: 50%;
     transform: translateX(-50%);
-    background: rgba(10, 14, 42, 0.7);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(245, 200, 66, 0.15);
+    background: rgba(10, 14, 42, 0.25);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(245, 200, 66, 0.1);
     border-radius: 50px;
     padding: 8px 20px;
     display: flex;
@@ -346,31 +255,24 @@ body {
     justify-content: center;
     gap: 12px;
     z-index: 100;
-    box-shadow: 
-        0 8px 40px rgba(0, 0, 0, 0.3),
-        0 0 60px rgba(212, 63, 122, 0.03),
-        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.2);
     min-width: 280px;
 }
 
-.ticker-content {
-    overflow: hidden;
-    text-align: center;
-}
-
+.ticker-content { overflow: hidden; text-align: center; }
 .ticker-text {
     display: flex;
     align-items: center;
-    justify-content: center;
     gap: 8px;
-    font-family: var(--font-display);
+    font-family: var(--font-orbitron);
     font-size: 10px;
     font-weight: 600;
     color: var(--festival-gold);
     letter-spacing: 1px;
     white-space: nowrap;
-    transition: all 0.3s ease;
 }
+.ticker-text i { font-size: 10px; color: var(--festival-magenta); }
+.ticker-amount { color: var(--festival-magenta-light); font-weight: 800; }
 
 .ticker-dot {
     width: 8px;
@@ -381,7 +283,6 @@ body {
     animation: pulseDot 1s infinite;
     flex-shrink: 0;
 }
-
 @keyframes pulseDot {
     0%, 100% { opacity: 1; }
     50% { opacity: 0.3; }
@@ -392,7 +293,7 @@ body {
     padding: 4px 14px;
     border-radius: 20px;
     font-size: 8px;
-    font-family: var(--font-display);
+    font-family: var(--font-orbitron);
     font-weight: 800;
     color: #fff;
     flex-shrink: 0;
@@ -402,23 +303,23 @@ body {
 }
 
 /* ============================================================
-   REMASTERED MAIN CARD - Premium Glass Design
+   MAIN CARD - TRANSPARENT GLASS
    ============================================================ */
 .main-card {
     position: relative;
     width: 100%;
     max-width: 420px;
-    background: rgba(10, 14, 42, 0.55);
-    backdrop-filter: blur(25px);
-    -webkit-backdrop-filter: blur(25px);
+    background: rgba(10, 14, 42, 0.15);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
     border-radius: 24px;
     padding: 32px 24px 36px;
     text-align: center;
     z-index: 10;
-    border: 1px solid rgba(245, 200, 66, 0.1);
+    border: 1px solid rgba(245, 200, 66, 0.08);
     box-shadow: 
-        0 20px 80px rgba(0, 0, 0, 0.5),
-        0 0 120px rgba(212, 63, 122, 0.03),
+        0 20px 80px rgba(0, 0, 0, 0.3),
+        0 0 120px rgba(212, 63, 122, 0.02),
         inset 0 1px 0 rgba(255, 255, 255, 0.03);
     margin: 0 auto;
     overflow: hidden;
@@ -431,14 +332,7 @@ body {
     inset: -2px;
     border-radius: 26px;
     padding: 2px;
-    background: conic-gradient(
-        from var(--angle, 0deg),
-        rgba(212, 63, 122, 0.2),
-        rgba(245, 200, 66, 0.2),
-        rgba(212, 63, 122, 0.2),
-        rgba(245, 200, 66, 0.2),
-        rgba(212, 63, 122, 0.2)
-    );
+    background: conic-gradient(from var(--angle, 0deg), rgba(212, 63, 122, 0.15), rgba(245, 200, 66, 0.15), rgba(212, 63, 122, 0.15), rgba(245, 200, 66, 0.15), rgba(212, 63, 122, 0.15));
     -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
     -webkit-mask-composite: xor;
     mask-composite: exclude;
@@ -446,81 +340,44 @@ body {
     z-index: 0;
     animation: borderRotate 6s linear infinite;
 }
+@property --angle { syntax: '<angle>'; initial-value: 0deg; inherits: false; }
+@keyframes borderRotate { to { --angle: 360deg; } }
 
-@property --angle {
-    syntax: '<angle>';
-    initial-value: 0deg;
-    inherits: false;
-}
-
-@keyframes borderRotate {
-    to { --angle: 360deg; }
-}
-
-/* Inner glow */
-.main-card::after {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(ellipse at 50% 0%, 
-        rgba(212, 63, 122, 0.04),
-        transparent 60%
-    );
-    pointer-events: none;
-    z-index: 0;
-}
-
-.main-card > * {
-    position: relative;
-    z-index: 1;
-}
+.main-card > * { position: relative; z-index: 1; }
 
 /* ========== CORNER DECORATIONS ========== */
 .corner-deco {
     position: absolute;
     font-size: 14px;
-    opacity: 0.2;
+    opacity: 0.25;
     animation: decoFloat 3s ease-in-out infinite;
     color: var(--festival-gold);
 }
-
 .corner-deco.tl { top: 14px; left: 18px; }
 .corner-deco.tr { top: 14px; right: 18px; }
 .corner-deco.bl { bottom: 14px; left: 18px; }
 .corner-deco.br { bottom: 14px; right: 18px; }
-
 @keyframes decoFloat {
-    0%, 100% { transform: translateY(0) scale(1); opacity: 0.2; }
-    50% { transform: translateY(-3px) scale(1.1); opacity: 0.4; }
+    0%, 100% { transform: translateY(0) scale(1); opacity: 0.25; }
+    50% { transform: translateY(-3px) scale(1.1); opacity: 0.45; }
 }
 
 /* ========== LOGO ========== */
-.logo-area {
-    margin-bottom: 20px;
-}
-
+.logo-area { margin-bottom: 20px; }
 .logo-icon {
     width: 80px;
     height: 80px;
-    background: linear-gradient(135deg, 
-        rgba(212, 63, 122, 0.15),
-        rgba(245, 200, 66, 0.08)
-    );
+    background: rgba(10, 14, 42, 0.2);
+    backdrop-filter: blur(10px);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     margin: 0 auto 12px;
-    border: 2px solid rgba(245, 200, 66, 0.15);
-    box-shadow: 
-        0 0 60px rgba(212, 63, 122, 0.05),
-        inset 0 0 60px rgba(245, 200, 66, 0.02);
+    border: 2px solid rgba(245, 200, 66, 0.12);
+    box-shadow: 0 0 60px rgba(212, 63, 122, 0.03);
     position: relative;
 }
-
 .logo-ring {
     position: absolute;
     inset: -4px;
@@ -528,51 +385,33 @@ body {
     border: 1px solid rgba(245, 200, 66, 0.06);
     animation: ringSpin 12s linear infinite;
 }
-
-@keyframes ringSpin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-.logo-icon i {
-    font-size: 36px;
-    color: var(--festival-gold);
-    text-shadow: 0 0 40px rgba(245, 200, 66, 0.15);
-}
+@keyframes ringSpin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+.logo-icon i { font-size: 36px; color: var(--festival-gold); text-shadow: 0 0 40px rgba(245, 200, 66, 0.1); }
 
 .logo-text {
     font-family: var(--font-cinzel);
     font-size: 26px;
     font-weight: 900;
     letter-spacing: 6px;
-    background: linear-gradient(180deg, 
-        var(--festival-gold),
-        var(--festival-gold-light),
-        var(--festival-gold)
-    );
+    background: linear-gradient(180deg, var(--festival-gold), var(--festival-gold-light), var(--festival-gold));
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
     text-transform: uppercase;
     line-height: 1.2;
 }
-
 .logo-text-sub {
     font-family: var(--font-cinzel);
     font-size: 20px;
     font-weight: 700;
     letter-spacing: 8px;
-    background: linear-gradient(180deg, 
-        var(--festival-magenta-light),
-        var(--festival-magenta)
-    );
+    background: linear-gradient(180deg, var(--festival-magenta-light), var(--festival-magenta));
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
     text-transform: uppercase;
     margin-top: -4px;
 }
-
 .logo-sub {
     font-family: var(--font-forum);
     font-size: 11px;
@@ -580,26 +419,22 @@ body {
     letter-spacing: 6px;
     text-transform: uppercase;
     margin-top: 2px;
-    opacity: 0.5;
+    opacity: 0.6;
 }
 
-/* ============================================================
-   REMASTERED VALUE PROPS - Glass Cards
-   ============================================================ */
+/* ========== VALUE PROPS - TRANSPARENT ========== */
 .value-props {
     display: flex;
     flex-direction: column;
     gap: 12px;
     margin-bottom: 20px;
     text-align: left;
-    background: rgba(10, 14, 42, 0.3);
-    backdrop-filter: blur(10px);
+    background: rgba(10, 14, 42, 0.12);
+    backdrop-filter: blur(8px);
     padding: 18px 16px;
     border-radius: 16px;
-    border: 1px solid rgba(245, 200, 66, 0.05);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(245, 200, 66, 0.04);
 }
-
 .prop-row {
     display: flex;
     align-items: center;
@@ -607,43 +442,26 @@ body {
     padding: 4px 0;
     border-bottom: 1px solid rgba(255, 255, 255, 0.02);
 }
-
-.prop-row:last-child {
-    border-bottom: none;
-}
-
+.prop-row:last-child { border-bottom: none; }
 .prop-icon {
     width: 44px;
     height: 44px;
-    background: rgba(10, 14, 42, 0.3);
+    background: rgba(10, 14, 42, 0.2);
     border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
     border: 1px solid rgba(245, 200, 66, 0.06);
     flex-shrink: 0;
-    transition: all 0.3s ease;
 }
-
-.prop-icon i {
-    font-size: 18px;
-    color: var(--festival-gold);
-    transition: all 0.3s ease;
-}
-
-.prop-row:hover .prop-icon {
-    border-color: rgba(245, 200, 66, 0.15);
-    box-shadow: 0 0 20px rgba(212, 63, 122, 0.05);
-}
-
+.prop-icon i { font-size: 18px; color: var(--festival-gold); }
 .prop-title {
     font-size: 13px;
-    font-family: var(--font-display);
+    font-family: var(--font-orbitron);
     font-weight: 700;
     color: var(--text-light);
     letter-spacing: 0.5px;
 }
-
 .prop-desc {
     font-size: 10px;
     color: var(--text-muted);
@@ -651,20 +469,17 @@ body {
     opacity: 0.6;
 }
 
-/* ============================================================
-   REMASTERED SCARCITY TRACKER
-   ============================================================ */
+/* ========== SCARCITY TRACKER - TRANSPARENT ========== */
 .scarcity-box {
-    background: rgba(10, 14, 42, 0.3);
-    backdrop-filter: blur(10px);
+    background: rgba(10, 14, 42, 0.12);
+    backdrop-filter: blur(8px);
     border-radius: 16px;
     padding: 16px 18px;
     margin-bottom: 20px;
-    border: 1px solid rgba(245, 200, 66, 0.05);
+    border: 1px solid rgba(245, 200, 66, 0.04);
     position: relative;
     overflow: hidden;
 }
-
 .scarcity-box::after {
     content: '';
     position: absolute;
@@ -675,10 +490,7 @@ body {
     background: linear-gradient(90deg, transparent, rgba(245, 200, 66, 0.02), transparent);
     animation: scannerGlow 6s infinite;
 }
-
-@keyframes scannerGlow {
-    100% { left: 200%; }
-}
+@keyframes scannerGlow { 100% { left: 200%; } }
 
 .scarcity-header {
     display: flex;
@@ -686,128 +498,96 @@ body {
     align-items: baseline;
     margin-bottom: 10px;
 }
-
 .scarcity-label {
-    font-family: var(--font-display);
+    font-family: var(--font-orbitron);
     font-size: 9px;
     color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: 2px;
     opacity: 0.6;
 }
-
+.scarcity-label i { margin-right: 4px; color: var(--festival-gold); }
 .scarcity-numbers {
-    font-family: var(--font-display);
+    font-family: var(--font-orbitron);
     font-size: 28px;
     font-weight: 900;
     color: var(--festival-magenta);
     text-shadow: 0 0 30px rgba(212, 63, 122, 0.1);
 }
-
 .scarcity-total {
     font-size: 12px;
     font-weight: 500;
     color: var(--text-muted);
     opacity: 0.4;
 }
-
 .progress-track {
     width: 100%;
     height: 8px;
-    background: rgba(10, 14, 42, 0.4);
+    background: rgba(10, 14, 42, 0.3);
     border-radius: 4px;
-    border: 1px solid rgba(245, 200, 66, 0.03);
+    border: 1px solid rgba(245, 200, 66, 0.02);
     overflow: hidden;
 }
-
 .progress-fill {
     height: 100%;
-    background: linear-gradient(90deg, 
-        var(--festival-magenta),
-        var(--festival-gold),
-        var(--festival-magenta-light),
-        var(--festival-gold)
-    );
+    background: linear-gradient(90deg, var(--festival-magenta), var(--festival-gold), var(--festival-magenta-light), var(--festival-gold));
     background-size: 200% 100%;
     border-radius: 4px;
     box-shadow: 0 0 30px rgba(212, 63, 122, 0.1);
     transition: width 0.5s ease;
     animation: shimmerProgress 3s infinite;
 }
-
 @keyframes shimmerProgress {
     0% { background-position: 200% 0; }
     100% { background-position: -200% 0; }
 }
 
-/* ============================================================
-   REMASTERED SWIPE - Premium Design
-   ============================================================ */
-.swipe-container {
-    margin-bottom: 20px;
-}
-
+/* ========== SWIPE - TRANSPARENT ========== */
+.swipe-container { margin-bottom: 20px; }
 .swipe-track {
     position: relative;
     width: 100%;
     height: 60px;
-    background: rgba(10, 14, 42, 0.3);
-    backdrop-filter: blur(10px);
+    background: rgba(10, 14, 42, 0.12);
+    backdrop-filter: blur(8px);
     border-radius: 30px;
-    border: 1px solid rgba(245, 200, 66, 0.08);
-    box-shadow: inset 0 4px 30px rgba(0,0,0,0.2);
+    border: 1px solid rgba(245, 200, 66, 0.06);
+    box-shadow: inset 0 4px 30px rgba(0,0,0,0.1);
     cursor: pointer;
     overflow: hidden;
 }
-
 .swipe-fire-trail {
     position: absolute;
     top: 0;
     left: 0;
     height: 100%;
-    background: linear-gradient(90deg, 
-        rgba(212, 63, 122, 0.15),
-        rgba(245, 200, 66, 0.15),
-        rgba(212, 63, 122, 0.15)
-    );
-    background-size: 200% 100%;
+    background: linear-gradient(90deg, rgba(212, 63, 122, 0.12), rgba(245, 200, 66, 0.12), rgba(212, 63, 122, 0.12));
     border-radius: 30px;
     opacity: 0;
     transition: width 0.05s linear;
     pointer-events: none;
     z-index: 1;
 }
-
-.swipe-fire-trail.active {
-    opacity: 0.5;
-}
-
+.swipe-fire-trail.active { opacity: 0.5; }
 .swipe-icon {
     position: absolute;
     left: 3px;
     top: 3px;
     width: 52px;
     height: 52px;
-    background: linear-gradient(135deg, 
-        rgba(212, 63, 122, 0.15),
-        rgba(245, 200, 66, 0.08)
-    );
+    background: rgba(10, 14, 42, 0.2);
     backdrop-filter: blur(10px);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 2px solid rgba(245, 200, 66, 0.12);
-    box-shadow: 0 0 40px rgba(212, 63, 122, 0.05);
+    border: 2px solid rgba(245, 200, 66, 0.08);
+    box-shadow: 0 0 40px rgba(212, 63, 122, 0.03);
     z-index: 3;
     cursor: grab;
     transition: left 0.05s linear;
 }
-
-.swipe-icon:active {
-    cursor: grabbing;
-}
-
+.swipe-icon:active { cursor: grabbing; }
 .scatter-icon {
     width: 44px;
     height: 44px;
@@ -815,27 +595,23 @@ body {
     object-fit: cover;
     animation: twistIcon 8s linear infinite;
 }
-
-@keyframes twistIcon {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-}
-
+@keyframes twistIcon { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 .swipe-text {
     position: absolute;
     left: 50%;
     top: 50%;
     transform: translate(-50%, -50%);
-    font-family: var(--font-display);
-    font-size: 13px;
+    font-family: var(--font-orbitron);
+    font-size: 12px;
     font-weight: 800;
     color: var(--text-muted);
-    letter-spacing: 3px;
+    letter-spacing: 2px;
     pointer-events: none;
     white-space: nowrap;
     z-index: 1;
     opacity: 0.4;
 }
+.swipe-text i { font-size: 10px; margin: 0 6px; color: var(--festival-gold); }
 
 /* ========== CARD FOOTER ========== */
 .card-footer {
@@ -844,88 +620,63 @@ body {
     justify-content: center;
     gap: 8px;
 }
-
 .card-footer i {
     font-size: 10px;
     color: var(--text-muted);
     opacity: 0.3;
 }
-
 .card-footer span {
     font-size: 8px;
     color: var(--text-muted);
-    font-family: var(--font-display);
+    font-family: var(--font-orbitron);
     letter-spacing: 1px;
     opacity: 0.3;
 }
 
 /* ============================================================
-   REMASTERED MODAL - Premium Glass Form
+   MODAL - TRANSPARENT GLASS
    ============================================================ */
 .modal-overlay {
     display: none;
     position: fixed;
     inset: 0;
-    background: rgba(10, 14, 42, 0.6);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    background: rgba(10, 14, 42, 0.15);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
     z-index: 10000;
     align-items: center;
     justify-content: center;
     padding: 20px;
 }
-
 .modal-container {
     width: 100%;
     max-width: 380px;
     animation: modalIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
     margin: 0 auto;
 }
-
 @keyframes modalIn {
-    from { 
-        opacity: 0; 
-        transform: scale(0.9) translateY(40px); 
-    }
-    to { 
-        opacity: 1; 
-        transform: scale(1) translateY(0); 
-    }
+    from { opacity: 0; transform: scale(0.9) translateY(40px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
 }
 
-/* ============================================================
-   REMASTERED MODAL CARD - Premium Glass
-   ============================================================ */
 .modal-card {
-    background: rgba(10, 14, 42, 0.6);
-    backdrop-filter: blur(30px);
-    -webkit-backdrop-filter: blur(30px);
+    background: rgba(10, 14, 42, 0.2);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     border-radius: 24px;
-    border: 1px solid rgba(245, 200, 66, 0.08);
+    border: 1px solid rgba(245, 200, 66, 0.06);
     padding: 36px 28px 32px;
-    box-shadow: 
-        0 30px 100px rgba(0, 0, 0, 0.5),
-        0 0 80px rgba(212, 63, 122, 0.02),
-        inset 0 1px 0 rgba(255, 255, 255, 0.02);
+    box-shadow: 0 30px 100px rgba(0, 0, 0, 0.3);
     position: relative;
     overflow: hidden;
 }
-
-/* Glow border effect */
 .modal-card::before {
     content: '';
     position: absolute;
     inset: -2px;
     border-radius: 26px;
     padding: 2px;
-    background: conic-gradient(
-        from var(--angle, 0deg),
-        rgba(212, 63, 122, 0.15),
-        rgba(245, 200, 66, 0.15),
-        rgba(212, 63, 122, 0.15),
-        rgba(245, 200, 66, 0.15),
-        rgba(212, 63, 122, 0.15)
-    );
+    background: conic-gradient(from var(--angle, 0deg), rgba(212, 63, 122, 0.10), rgba(245, 200, 66, 0.10), rgba(212, 63, 122, 0.10), rgba(245, 200, 66, 0.10), rgba(212, 63, 122, 0.10));
     -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
     -webkit-mask-composite: xor;
     mask-composite: exclude;
@@ -933,36 +684,15 @@ body {
     z-index: 0;
     animation: borderRotate 6s linear infinite;
 }
+.modal-card > * { position: relative; z-index: 1; }
 
-/* Inner glow */
-.modal-card::after {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(ellipse at 50% 0%, 
-        rgba(212, 63, 122, 0.03),
-        transparent 60%
-    );
-    pointer-events: none;
-    z-index: 0;
-}
-
-.modal-card > * {
-    position: relative;
-    z-index: 1;
-}
-
-/* ========== MODAL CLOSE BUTTON ========== */
 .modal-close {
     position: absolute;
     top: 16px;
     right: 16px;
-    background: rgba(10, 14, 42, 0.4);
+    background: rgba(10, 14, 42, 0.2);
     backdrop-filter: blur(10px);
-    border: 1px solid rgba(245, 200, 66, 0.06);
+    border: 1px solid rgba(245, 200, 66, 0.04);
     width: 36px;
     height: 36px;
     border-radius: 50%;
@@ -975,7 +705,6 @@ body {
     align-items: center;
     justify-content: center;
 }
-
 .modal-close:hover {
     background: rgba(212, 63, 122, 0.15);
     border-color: var(--festival-magenta);
@@ -983,39 +712,26 @@ body {
     color: var(--festival-magenta-light);
 }
 
-/* ========== MODAL ICON ========== */
 .modal-icon {
     width: 72px;
     height: 72px;
-    background: linear-gradient(135deg, 
-        rgba(212, 63, 122, 0.12),
-        rgba(245, 200, 66, 0.06)
-    );
+    background: rgba(10, 14, 42, 0.15);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     margin: 0 auto 14px;
-    border: 2px solid rgba(245, 200, 66, 0.08);
-    box-shadow: 0 0 60px rgba(212, 63, 122, 0.03);
+    border: 2px solid rgba(245, 200, 66, 0.06);
+    box-shadow: 0 0 60px rgba(212, 63, 122, 0.02);
 }
+.modal-icon i { font-size: 32px; color: var(--festival-gold); text-shadow: 0 0 40px rgba(245, 200, 66, 0.08); }
 
-.modal-icon i {
-    font-size: 32px;
-    color: var(--festival-gold);
-    text-shadow: 0 0 40px rgba(245, 200, 66, 0.1);
-}
-
-/* ========== MODAL TITLE ========== */
 .modal-title {
     font-family: var(--font-cinzel);
     font-size: 20px;
     font-weight: 900;
     text-align: center;
-    background: linear-gradient(180deg, 
-        var(--festival-gold),
-        var(--festival-gold-light)
-    );
+    background: linear-gradient(180deg, var(--festival-gold), var(--festival-gold-light));
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
@@ -1023,9 +739,8 @@ body {
     text-transform: uppercase;
     letter-spacing: 3px;
 }
-
 .modal-subtitle {
-    font-family: var(--font-body);
+    font-family: var(--font-poppins);
     font-size: 12px;
     text-align: center;
     color: var(--text-muted);
@@ -1033,23 +748,12 @@ body {
     line-height: 1.8;
     opacity: 0.6;
 }
+.gold-text { color: var(--festival-gold); font-weight: 600; opacity: 1; }
 
-.gold-text {
-    color: var(--festival-gold);
-    font-weight: 600;
-    opacity: 1;
-}
-
-/* ============================================================
-   REMASTERED BONUS BOX - Premium Gold
-   ============================================================ */
+/* ========== BONUS BOX ========== */
 .bonus-box-premium {
     position: relative;
-    background: linear-gradient(135deg, 
-        rgba(212, 63, 122, 0.9),
-        rgba(245, 200, 66, 0.9),
-        rgba(212, 63, 122, 0.9)
-    );
+    background: linear-gradient(135deg, rgba(212, 63, 122, 0.85), rgba(245, 200, 66, 0.85), rgba(212, 63, 122, 0.85));
     background-size: 200% 200%;
     border: 2px solid rgba(245, 200, 66, 0.12);
     border-radius: 16px;
@@ -1057,68 +761,45 @@ body {
     text-align: center;
     margin-bottom: 24px;
     overflow: hidden;
-    box-shadow: 
-        0 8px 40px rgba(0, 0, 0, 0.2),
-        0 0 60px rgba(212, 63, 122, 0.05);
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.15);
     animation: goldShimmer 4s ease-in-out infinite;
 }
-
-@keyframes goldShimmer {
-    0%, 100% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-}
-
+@keyframes goldShimmer { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
 .bonus-glow {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: radial-gradient(circle at center, rgba(255,255,255,0.08), transparent 70%);
+    background: radial-gradient(circle at center, rgba(255,255,255,0.06), transparent 70%);
     opacity: 0.5;
     animation: glowPulse 2.5s ease-in-out infinite;
 }
-
-@keyframes glowPulse {
-    0%, 100% { opacity: 0.3; }
-    50% { opacity: 0.7; }
-}
-
+@keyframes glowPulse { 0%, 100% { opacity: 0.3; } 50% { opacity: 0.7; } }
 .bonus-shine {
     position: absolute;
     top: -50%;
     left: -50%;
     width: 200%;
     height: 200%;
-    background: linear-gradient(45deg, 
-        transparent 30%, 
-        rgba(255,255,255,0.05) 50%, 
-        transparent 70%
-    );
+    background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.04) 50%, transparent 70%);
     transform: rotate(45deg);
     animation: bonusShine 5s infinite;
 }
-
-@keyframes bonusShine {
-    0% { transform: translateX(-100%) rotate(45deg); }
-    100% { transform: translateX(100%) rotate(45deg); }
-}
+@keyframes bonusShine { 0% { transform: translateX(-100%) rotate(45deg); } 100% { transform: translateX(100%) rotate(45deg); } }
 
 .bonus-amount-premium {
-    font-family: var(--font-display);
+    font-family: var(--font-orbitron);
     font-size: 56px;
     font-weight: 900;
     color: #2a0a1a;
-    text-shadow: 
-        2px 2px 0px rgba(255,255,255,0.05),
-        0 0 40px rgba(255,255,255,0.05);
+    text-shadow: 2px 2px 0px rgba(255,255,255,0.05);
     position: relative;
     z-index: 2;
     letter-spacing: 2px;
 }
-
 .bonus-label-premium {
-    font-family: var(--font-display);
+    font-family: var(--font-orbitron);
     font-size: 10px;
     font-weight: 700;
     letter-spacing: 4px;
@@ -1127,21 +808,16 @@ body {
     position: relative;
     z-index: 2;
     text-transform: uppercase;
-    text-shadow: 0 1px 2px rgba(255,255,255,0.05);
 }
+.bonus-label-premium i { margin: 0 6px; }
 
-/* ============================================================
-   REMASTERED INPUT GROUP - Premium Form
-   ============================================================ */
-.input-group-premium {
-    margin-bottom: 24px;
-}
-
+/* ========== INPUT GROUP - TRANSPARENT ========== */
+.input-group-premium { margin-bottom: 24px; }
 .input-label-premium {
     display: flex;
     align-items: center;
     gap: 10px;
-    font-family: var(--font-body);
+    font-family: var(--font-poppins);
     font-size: 11px;
     font-weight: 600;
     color: var(--text-light);
@@ -1149,72 +825,73 @@ body {
     letter-spacing: 0.5px;
     opacity: 0.7;
 }
+.input-label-premium i { color: var(--festival-gold); font-size: 13px; }
 
-.input-label-premium i {
-    color: var(--festival-gold);
-    font-size: 13px;
-}
-
-/* ============================================================
-   REMASTERED INPUT FIELD - Premium Design
-   ============================================================ */
 .input-wrapper-premium {
     display: flex;
     align-items: center;
-    background: rgba(10, 14, 42, 0.4);
+    background: rgba(10, 14, 42, 0.12);
     backdrop-filter: blur(10px);
     border: 1px solid rgba(245, 200, 66, 0.06);
     border-radius: 14px;
     overflow: hidden;
     transition: all 0.3s ease;
-    box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.1);
+    box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.05);
 }
-
 .input-wrapper-premium:focus-within {
-    border-color: rgba(245, 200, 66, 0.2);
-    box-shadow: 
-        inset 0 2px 10px rgba(0, 0, 0, 0.1),
-        0 0 40px rgba(212, 63, 122, 0.03),
-        0 0 80px rgba(245, 200, 66, 0.02);
+    border-color: rgba(245, 200, 66, 0.15);
+    box-shadow: 0 0 40px rgba(212, 63, 122, 0.02), 0 0 80px rgba(245, 200, 66, 0.01);
 }
-
+.input-prefix {
+    padding: 0 0 0 16px;
+    color: var(--text-muted);
+    font-family: var(--font-orbitron);
+    font-size: 13px;
+    font-weight: 600;
+    opacity: 0.5;
+}
+.input-suffix {
+    padding: 0 16px 0 0;
+    color: var(--text-dim);
+    font-size: 16px;
+}
 .input-wrapper-premium input {
     flex: 1;
     background: transparent;
     border: none;
-    padding: 16px 18px;
+    padding: 16px 8px;
     color: var(--text-light);
-    font-family: var(--font-display);
+    font-family: var(--font-orbitron);
     font-size: 15px;
     font-weight: 500;
     outline: none;
     letter-spacing: 0.5px;
 }
-
 .input-wrapper-premium input::placeholder {
     color: var(--text-dim);
-    font-family: var(--font-body);
+    font-family: var(--font-poppins);
     font-weight: 300;
     font-size: 13px;
     letter-spacing: 0.5px;
 }
-
-.input-wrapper-premium input:focus {
-    color: var(--text-light);
+.input-hint {
+    font-size: 10px;
+    color: var(--text-dim);
+    margin-top: 8px;
+    font-family: var(--font-poppins);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    opacity: 0.5;
 }
+.input-hint i { font-size: 10px; color: var(--festival-gold); }
 
-/* ============================================================
-   REMASTERED BUTTON - Premium CTA
-   ============================================================ */
+/* ========== BUTTON ========== */
 .login-btn {
     width: 100%;
-    background: linear-gradient(180deg, 
-        var(--festival-magenta),
-        var(--festival-magenta-light),
-        var(--festival-magenta)
-    );
+    background: linear-gradient(180deg, var(--festival-magenta), var(--festival-magenta-light), var(--festival-magenta));
     background-size: 100% 200%;
-    border: 2px solid rgba(245, 200, 66, 0.1);
+    border: 2px solid rgba(245, 200, 66, 0.08);
     border-radius: 14px;
     padding: 18px 20px;
     cursor: pointer;
@@ -1222,12 +899,8 @@ body {
     margin-bottom: 16px;
     position: relative;
     overflow: hidden;
-    box-shadow: 
-        0 4px 0 #6a1a3a,
-        0 8px 40px rgba(0, 0, 0, 0.2),
-        0 0 60px rgba(212, 63, 122, 0.05);
+    box-shadow: 0 4px 0 #6a1a3a, 0 8px 40px rgba(0, 0, 0, 0.15);
 }
-
 .login-btn::before {
     content: '';
     position: absolute;
@@ -1235,96 +908,40 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    background: linear-gradient(180deg, rgba(255,255,255,0.06), transparent);
+    background: linear-gradient(180deg, rgba(255,255,255,0.04), transparent);
     pointer-events: none;
 }
-
-.login-btn:active {
-    transform: translateY(4px);
-    box-shadow: 
-        0 2px 0 #6a1a3a,
-        0 5px 20px rgba(0, 0, 0, 0.15);
-}
-
-.login-btn:hover {
-    transform: translateY(-1px);
-    box-shadow: 
-        0 4px 0 #6a1a3a,
-        0 12px 50px rgba(0, 0, 0, 0.25),
-        0 0 80px rgba(212, 63, 122, 0.08);
-}
-
+.login-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #6a1a3a, 0 5px 20px rgba(0, 0, 0, 0.1); }
+.login-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 0 #6a1a3a, 0 12px 50px rgba(0, 0, 0, 0.2); }
 .login-text {
-    font-family: var(--font-display);
+    font-family: var(--font-orbitron);
     font-size: 14px;
     font-weight: 800;
     letter-spacing: 4px;
     color: #fff;
     text-shadow: 0 1px 2px rgba(0,0,0,0.15);
 }
+.login-text::before { content: '🎆 '; }
+.login-dots { display: none; }
+.login-btn.loading .login-text { display: none; }
+.login-btn.loading .login-dots { display: inline-block; }
+.login-btn.loading .login-dots::before { content: 'Loading'; animation: dotPulse 1.5s infinite; }
+@keyframes dotPulse { 0% { content: 'Loading'; } 33% { content: 'Loading.'; } 66% { content: 'Loading..'; } 100% { content: 'Loading...'; } }
+.login-btn.success { background: linear-gradient(180deg, #22C55E, #16A34A); border-color: rgba(34, 197, 94, 0.2); }
+.login-btn.success .login-text { display: inline-block; }
+.login-btn.success .login-dots { display: none; }
 
-.login-text::before {
-    content: '🎆 ';
-}
-
-.login-dots {
-    display: inline-block;
-    margin-left: 8px;
-    font-family: monospace;
-    font-size: 14px;
-    font-weight: bold;
-    color: #fff;
-}
-
-.login-btn.loading .login-text {
-    display: none;
-}
-
-.login-btn.loading .login-dots {
-    display: inline-block;
-}
-
-.login-btn.loading .login-dots::before {
-    content: 'Loading';
-    animation: dotPulse 1.5s infinite;
-}
-
-@keyframes dotPulse {
-    0% { content: 'Loading'; }
-    33% { content: 'Loading.'; }
-    66% { content: 'Loading..'; }
-    100% { content: 'Loading...'; }
-}
-
-.login-btn.success {
-    background: linear-gradient(180deg, #22C55E, #16A34A);
-    border-color: rgba(34, 197, 94, 0.3);
-}
-
-.login-btn.success .login-text {
-    display: inline-block;
-}
-
-.login-btn.success .login-dots {
-    display: none;
-}
-
-/* ========== WARNING TEXT ========== */
 .warning-text-premium {
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
-    font-family: var(--font-body);
+    font-family: var(--font-poppins);
     font-size: 9px;
     color: var(--text-muted);
     opacity: 0.4;
 }
-
-.warning-text-premium i {
-    color: var(--festival-gold);
-    font-size: 9px;
-}
+.warning-text-premium i { color: var(--festival-gold); font-size: 9px; }
 
 /* ========== PARTICLES CANVAS ========== */
 #particleCanvas {
@@ -1337,168 +954,46 @@ body {
     z-index: 1;
 }
 
-/* ============================================================
-   RESPONSIVE
-   ============================================================ */
+/* ========== RESPONSIVE ========== */
 @media (max-width: 480px) {
-    body {
-        padding: 12px;
-    }
-    
-    .main-card {
-        padding: 24px 16px 28px;
-        max-width: 100%;
-        border-radius: 20px;
-    }
-    
-    .live-ticker {
-        top: 12px;
-        padding: 6px 14px;
-        gap: 8px;
-        min-width: 240px;
-        border-radius: 30px;
-    }
-    
-    .ticker-text {
-        font-size: 8px;
-        gap: 4px;
-    }
-    
-    .ticker-badge {
-        padding: 2px 10px;
-        font-size: 6px;
-        letter-spacing: 1px;
-    }
-    
-    .logo-text {
-        font-size: 22px;
-        letter-spacing: 4px;
-    }
-    
-    .logo-text-sub {
-        font-size: 17px;
-        letter-spacing: 6px;
-    }
-    
-    .logo-icon {
-        width: 64px;
-        height: 64px;
-    }
-    
-    .logo-icon i {
-        font-size: 28px;
-    }
-    
-    .logo-sub {
-        font-size: 9px;
-        letter-spacing: 4px;
-    }
-    
-    .prop-title {
-        font-size: 11px;
-    }
-    
-    .prop-desc {
-        font-size: 9px;
-    }
-    
-    .prop-icon {
-        width: 38px;
-        height: 38px;
-    }
-    
-    .prop-icon i {
-        font-size: 15px;
-    }
-    
-    .scarcity-numbers {
-        font-size: 24px;
-    }
-    
-    .bonus-amount-premium {
-        font-size: 42px;
-    }
-    
-    .modal-title {
-        font-size: 18px;
-        letter-spacing: 2px;
-    }
-    
-    .modal-card {
-        padding: 28px 20px 24px;
-        border-radius: 20px;
-    }
-    
-    .modal-container {
-        max-width: 100%;
-        padding: 12px;
-    }
-    
-    .swipe-track {
-        height: 52px;
-    }
-    
-    .swipe-icon {
-        width: 44px;
-        height: 44px;
-        top: 2px;
-        left: 2px;
-    }
-    
-    .scatter-icon {
-        width: 38px;
-        height: 38px;
-    }
-    
-    .swipe-text {
-        font-size: 11px;
-        letter-spacing: 2px;
-    }
-    
-    .corner-deco {
-        font-size: 11px;
-    }
-    
-    .input-wrapper-premium input {
-        padding: 14px 16px;
-        font-size: 14px;
-    }
-    
-    .login-btn {
-        padding: 16px 18px;
-        border-radius: 12px;
-    }
-    
-    .login-text {
-        font-size: 13px;
-        letter-spacing: 3px;
-    }
+    body { padding: 12px; }
+    .main-card { padding: 24px 16px 28px; max-width: 100%; border-radius: 20px; }
+    .live-ticker { top: 12px; padding: 6px 14px; gap: 8px; min-width: 240px; border-radius: 30px; }
+    .ticker-text { font-size: 8px; }
+    .ticker-badge { padding: 2px 10px; font-size: 6px; letter-spacing: 1px; }
+    .logo-text { font-size: 22px; letter-spacing: 4px; }
+    .logo-text-sub { font-size: 17px; letter-spacing: 6px; }
+    .logo-icon { width: 64px; height: 64px; }
+    .logo-icon i { font-size: 28px; }
+    .logo-sub { font-size: 9px; letter-spacing: 4px; }
+    .prop-title { font-size: 11px; }
+    .prop-desc { font-size: 9px; }
+    .prop-icon { width: 38px; height: 38px; }
+    .prop-icon i { font-size: 15px; }
+    .scarcity-numbers { font-size: 24px; }
+    .bonus-amount-premium { font-size: 42px; }
+    .modal-title { font-size: 18px; letter-spacing: 2px; }
+    .modal-card { padding: 28px 20px 24px; border-radius: 20px; }
+    .modal-container { max-width: 100%; padding: 12px; }
+    .swipe-track { height: 52px; }
+    .swipe-icon { width: 44px; height: 44px; top: 2px; left: 2px; }
+    .scatter-icon { width: 38px; height: 38px; }
+    .swipe-text { font-size: 10px; }
+    .corner-deco { font-size: 11px; }
+    .input-wrapper-premium input { padding: 14px 8px; font-size: 14px; }
+    .login-btn { padding: 16px 18px; border-radius: 12px; }
+    .login-text { font-size: 13px; letter-spacing: 3px; }
+    .input-prefix { font-size: 12px; padding-left: 12px; }
 }
 
 /* ========== ACCESSIBILITY ========== */
 @media (prefers-reduced-motion: reduce) {
-    * {
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
-    }
+    * { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
 }
-
-button:focus-visible,
-input:focus-visible {
+button:focus-visible, input:focus-visible {
     outline: 2px solid var(--festival-gold);
     outline-offset: 2px;
 }
-
-::-webkit-scrollbar {
-    width: 4px;
-}
-
-::-webkit-scrollbar-track {
-    background: rgba(10, 14, 42, 0.3);
-}
-
-::-webkit-scrollbar-thumb {
-    background: var(--festival-magenta);
-    border-radius: 2px;
-}
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: rgba(10, 14, 42, 0.2); }
+::-webkit-scrollbar-thumb { background: var(--festival-magenta); border-radius: 2px; }
